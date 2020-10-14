@@ -10,10 +10,11 @@ This project aim to expand conflict resolution for X/Inv/XEditor.
 Also, This program is not compatible with `wx`
 
 ## run
-Excecute the following command in this project directory.
+Excecute the following command in this project root directory.
+
 ```
 stack ghci --no-load --package containers
 
-Plelude> :load X.hs
+Plelude> :load app/X.hs
 ```
-If you want to execute InXmlTest.hs, read `InXmlTest.hs` in the REPL.
+If you want to execute InXmlTest.hs, read `app/InXmlTest.hs` in the REPL.
