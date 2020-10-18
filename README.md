@@ -9,7 +9,7 @@ This project aim to expand conflict resolution for X/Inv/XEditor.
 
 Also, This program is not compatible with `wx`
 
-## run
+## Run
 Excecute the following command in this project root directory.
 
 ```
@@ -17,4 +17,4 @@ stack ghci --no-load --package containers
 
 Plelude> :load app/X.hs
 ```
-If you want to execute InXmlTest.hs, read `app/InXmlTest.hs` in the REPL.
+If you want to execute InXmlTest.hs, load `app/InXmlTest.hs` in the REPL.
