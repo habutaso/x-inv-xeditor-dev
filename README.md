@@ -15,6 +15,6 @@ Excecute the following command in this project root directory.
 ```
 stack ghci --no-load --package containers
 
-Plelude> :load app/X.hs
+Prelude> :load app/X.hs
 ```
 If you want to execute InXmlTest.hs, load `app/InXmlTest.hs` in the REPL.
