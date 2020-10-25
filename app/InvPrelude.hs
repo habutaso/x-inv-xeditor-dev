@@ -155,7 +155,7 @@ bySnd (_ :& x) (_ :& y) =
 
 
 
-
+-- TODO: ここを改善すべき
 genEq = Define "genEq" (Inv genDup)
 genDup =
  Define "genDup"

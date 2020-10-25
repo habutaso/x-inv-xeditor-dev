@@ -47,6 +47,11 @@ eval st Cons (a :& x) = return (a :@ x)
 --eval st Cons (Ins x) = liftM Ins (eval st Cons x)
 eval st Cons x = outdom st Cons x
 
+-- TODO: 多分ここ直せばいい
+-- (a :@ x) は Val :@ Val
+-- eval2 st (Inv Cons) (a :@ x) = 
+-- 	case (a, x) of
+-- 		(Str s1, Str s2) -> 
 eval st (Inv Cons) (a :@ x) = return (a :& x)
 --eval st (Inv Cons) (Del x) = liftM Del (eval st (Inv Cons) x)
 --eval st (Inv Cons) (Ins x) = liftM Ins (eval st (Inv Cons) x)
