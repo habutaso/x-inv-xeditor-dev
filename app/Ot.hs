@@ -14,11 +14,6 @@ data TreeCommand cmd a =
       Atomic (ListCommand cmd a)
     | OpenRoot Int (TreeCommand cmd a)
 
--- bind :: (a1 -> Maybe a2) -> Maybe a1 -> Maybe a2
--- bind f (Just s) = f s
--- bind f Nothing = Nothing
-
-
 tr_ins :: Int -> Int -> Int -> Int
 tr_ins len n1 n2 =
     if n1 < n2 then n1 else n1 + len
@@ -77,7 +72,7 @@ nodeW t Nothing   = Nothing
 list_interp :: (OTBase a b) -> (ListCommand b c) -> Tree c -> Maybe (Tree c)
 list_interp ot (TreeInsert n l) (Node x0 ls) = nodeW x0 (ins n l ls)
 list_interp ot (TreeRemove n l) (Node x0 ls) = nodeW x0 (rm n l ls)
-list_itnerp ot (EditLabel c) (Node x0 ls) =
+list_interp ot (EditLabel c) (Node x0 ls) =
     let interpreted = interp ot c x0 in
     if isJust interpreted then let Just x' = interpreted in Just (Node x' ls)
                           else Nothing
@@ -87,7 +82,6 @@ tree_interp :: (OTBase a b) -> (TreeCommand b c) -> c -> Maybe (Tree c)
 tree_interp ot (Atomic c) (Node x0 ls) = list_interp ot c (Node x0 ls)
 tree_interp ot (OpenRoot n c) (Node x0 ls) = 
     nodeW x0 (rplc n ((ls !! n) >>= (tree_interp ot c)) ls) 
--- (ls !! n) >>= (tree_interp ot c)
 
 -- TODO: list_it 
 list_it :: (OTBase a b) -> (ListCommand b c)
