@@ -1,4 +1,5 @@
-module Main where
+module XGUIMain where
+
 import Graphics.UI.WX
 import Graphics.UI.WXCore
 import Graphics.UI.WXCore.WxcTypes
@@ -14,7 +15,7 @@ import Text.ParserCombinators.Parsec (parse)
 
 
 
-main = editor
+-- main = editor
 
 
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 module EditorInf (State, XMLState, 
                   editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
                   src, xsrc, transform, tar, xtar) where
@@ -12,18 +11,15 @@ import Error
 import EditCommand
 import X
 
-import Data.Char
-import Text.XML.Light.Types
+
+import Text.XML.HaXml.Types
 import Marshall
 
--- import Text.XML.HaXml.Pretty
+import Text.XML.HaXml.Pretty
 
 
 type State = (Val, Inv Val, Val)
 type XMLState = (Content, Inv Val, Content)
-
-instance MonadFail (Either (Err (Inv Val) Val)) where
-    -- fail = Left
 
 editorPutGet :: State -> Command Val -> Either (Err (Inv Val) Val) State
 editorPutGet (src,f,tar) cmd =
@@ -144,9 +140,9 @@ outp (_ :& o) = o
 
 
 
-main = do src <- getSource 
-          showSrc src
-          loop transform src
+-- main = do src <- getSource 
+--           showSrc src
+--           loop transform src
 
 loop f src = 
   do let view = extract (get [] f src)
@@ -188,8 +184,8 @@ extract (Left err) = error (show err)
 
 
 
--- instance Show Element where
---  show = show . element
---
--- instance Show Content where
---  show = show . content
+instance Show Element where
+ show = show . element
+
+instance Show Content where
+ show = show . content

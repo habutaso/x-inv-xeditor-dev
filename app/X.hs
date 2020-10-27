@@ -28,7 +28,7 @@ dupx = Define "dupx" (genDup <.> (Id :*: genDup <.> futatsu <.> mkRoot))
 futatsu = (Id :*: Dup DNil <.> Cons) <.> Cons 
 mkRoot = Dup (DStr "_dup") <.> Swap <.> Node
 
-inv_dupx = (Id :*: (rmRoot <.> hitotsu <.> resCnfl)) <.>
+inv_dupx = (Id :*: (rmRoot <.> hitotsu <.> resCnfl)) <.> update
 rmRoot = (Inv Node) <.> Swap <.> (Inv (Dup (DStr "_dup")))
 hitotsu = (Inv Cons) <.> (Id :*: (Inv Cons) <.> (Inv (Dup DNil)))
 resCnfl = (Inv genDup)

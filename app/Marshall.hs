@@ -1,34 +1,40 @@
 module Marshall (xmlToVal, valToXML) where
 
-
 import Val
-import Text.XML.HaXml.Types
+import Data.Char
+import Text.XML.Light.Types
 
-
-xmlToVal :: Content -> Val
-xmlToVal (CString _ s) = cvtStr s
-xmlToVal (CElem (Elem t _ cs)) = 
-    Nod (cvtStr t) (foldr (:@) Nl (map xmlToVal cs))
 cvtStr "undefined" = Undef
 cvtStr s = Str s
 
+xmlToVal :: Content -> Val
+xmlToVal (Text cdata) =
+    let CData _ s _ = cdata in
+    cvtStr s
+
+xmlToVal (Elem e) = 
+    let Element qn _ cs _ = e in
+    let QName q _ _ = qn in
+    Nod (cvtStr q) (foldr (:@) Nl (map xmlToVal cs))
+
 valToXML :: Val -> Content
-valToXML (Num n) = CString False (show n)
-valToXML (Str s) = CString False s
-valToXML (Nod a ts) = CElem (Elem (atom a) [] (valLToXML ts))
--- valToXML (Mark a) = liftElem "_mark" (valToXML a)
+valToXML (Num n) =
+    Text (CData { cdVerbatim = CDataRaw, cdData = (show n), cdLine = Nothing })
+valToXML (Str s) =
+    Text (CData { cdVerbatim = CDataRaw, cdData = s, cdLine = Nothing })
+valToXML (Nod a ts) =
+    let name = QName { qName = (atom a), qURI = Nothing, qPrefix = Nothing } in
+    Elem (Element { elName = name, elAttribs = [],
+           elContent = valLToXML ts, elLine = Nothing })
 valToXML (Mark a) = valToXML a
-valToXML Undef = CString False "undefined"
+valToXML Undef =
+    Text (CData { cdVerbatim = CDataRaw, cdData = "undefined", cdLine = Nothing })
 
 valLToXML Nl = []
-valLToXML Undef = []   -- hack!
--- valLToXML (Del a :@ x) = liftElem "_del" (valToXML a) : valLToXML x
--- valLToXML (Ins a :@ x) = liftElem "_ins" (valToXML a) : valLToXML x
+valLToXML Undef = []
 valLToXML (Del a :@ x) = valLToXML x
 valLToXML (Ins a :@ x) = valToXML a : valLToXML x
 valLToXML (a :@ x) = valToXML a : valLToXML x
-
-liftElem t e = CElem (Elem t [] [e])
 
 atom (Num n) = show n
 atom (Str s) = s 
