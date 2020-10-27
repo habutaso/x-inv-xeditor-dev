@@ -5,15 +5,17 @@ This project aim to expand conflict resolution for X/Inv/XEditor.
 * Debian 10 (buster) on WSL
 * haskell stack 2.3.3
 * GHC 8.8.4 (lts-16.16)
-* HaXml 1.25.5 (insufficient compatibility)
 
-Also, This program is not compatible with `wx`
+This program is not compatible with `wx`
 
 ## Run
-Excecute the following command in this project root directory.
+`app/EditorInf.hs` is main file for bidirecitonal transformation.  
+Excecute `stack ghci` to load main file.
+
+Besides you can run X by using the following commands.
 
 ```
-stack ghci --no-load --package containers
+stack ghci --no-load
 
 Prelude> :load app/X.hs
 ```
