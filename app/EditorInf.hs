@@ -11,19 +11,18 @@ import Eval
 import Error
 import EditCommand
 import X
+import Marshall
 
 import Data.Char
 import Text.XML.Light.Types
-import Marshall
-
--- import Text.XML.HaXml.Pretty
+import Text.XML.Light.Output
 
 
 type State = (Val, Inv Val, Val)
 type XMLState = (Content, Inv Val, Content)
 
 instance MonadFail (Either (Err (Inv Val) Val)) where
-    -- fail = Left
+    fail = (\s -> Left (Err (Modified "error") []))
 
 editorPutGet :: State -> Command Val -> Either (Err (Inv Val) Val) State
 editorPutGet (src,f,tar) cmd =
@@ -139,6 +138,8 @@ src = read "{'Staff', {'Member', 'Takeichi':'takeichi@ipl':'03-12345678':[]}:[]}
 xsrc = valToXML src
 xtar = valToXML tar
 
+showxsrc = showContent xsrc
+
 inp  (i :& _) = i
 outp (_ :& o) = o 
 
@@ -152,7 +153,7 @@ loop f src =
   do let view = extract (get [] f src)
      putVal view
      cmd <- getCommand
-     let view' = applyCmd cmd view
+     let view' = (applyCmd cmd) view
      let src' = extract (put [] f view')
      showSrc src'
      loop f src'
@@ -192,4 +193,4 @@ extract (Left err) = error (show err)
 --  show = show . element
 --
 -- instance Show Content where
---  show = show . content
+--   show = showContent

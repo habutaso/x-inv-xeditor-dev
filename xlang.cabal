@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76116ae1639c778a75df37277cf41ef7a404740974b167a752b216e4c25f99ed
+-- hash: 22b6e4526cdcb6b74344fbf9bf529cc9bb8034f2a10396f12d2e9d8325902aef
 
 name:           xlang
 version:        0.1.0.0
@@ -35,16 +35,21 @@ library
   build-depends:
       base >=4.7 && <5
     , containers ==0.6.4.1
+    , lucid ==2.9.12
     , mtl ==2.2.2
     , parsec ==3.1.14.0
     , polyparse >=1.10
+    , scotty
+    , text ==1.2.4.0
+    , wai-middleware-static
     , xml ==1.3.14
   default-language: Haskell2010
 
 executable xlang-exe
-  main-is: EditorInf2.hs
+  main-is: Main.hs
   other-modules:
       EditCommand
+      EditorInf
       Error
       Eval
       Inv
@@ -52,7 +57,8 @@ executable xlang-exe
       InvPrelude
       InXml
       InXmlTest
-      Marshall2
+      Marshall
+      Ot
       Val
       View
       X
@@ -63,9 +69,13 @@ executable xlang-exe
   build-depends:
       base >=4.7 && <5
     , containers ==0.6.4.1
+    , lucid ==2.9.12
     , mtl ==2.2.2
     , parsec ==3.1.14.0
     , polyparse >=1.10
+    , scotty
+    , text ==1.2.4.0
+    , wai-middleware-static
     , xlang
     , xml ==1.3.14
   default-language: Haskell2010

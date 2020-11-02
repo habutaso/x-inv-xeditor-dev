@@ -1,8 +1,14 @@
 module Ot where
 
+import Data.Char
 import Data.Maybe
 
 data Tree t = Node t [Tree t]
+    deriving (Eq, Show)
+
+-- class OTBase x cmd where
+--     interp :: cmd -> x -> Maybe x
+--     it :: cmd -> cmd -> Bool -> [cmd]
 
 data OTBase x cmd =
     BuildOTBase (cmd -> x -> Maybe x) (cmd -> cmd -> Bool -> [cmd])
@@ -21,12 +27,11 @@ tr_ins len n1 n2 =
     if n1 < n2 then n1 else n1 + len
 
 tr_rem :: Int -> Int -> Int -> Maybe Int
-tr_rem len n1 n2 =
-    if n1 < n2 then Just n1
-                       else ( if (n2 + len) <= n1 then Just (n1 - len)
-                                                   else Nothing )
-
-
+tr_rem len n1 n2
+    | n1 < n2          = Just n1
+    | (n2 + len) <= n1 = Just (n1 - len)
+    | otherwise        = Nothing
+    
 interp :: (OTBase a1 a2) -> a2 -> a1 -> Maybe a1
 interp (BuildOTBase in1 _) = in1
 
@@ -60,18 +65,22 @@ cut (x:xs) 0 r = x : (cut xs 0 (r-1))
 cut (x:xs) s r = x : (cut xs (s-1) r)
 cut xs _ _     = xs
 
+nth :: Int -> [a] -> Maybe a
+nth _ []     = Nothing
+nth 0 (x:xs) = Just x
+nth i (x:xs) = nth (i-1) xs
+
 -- リストのn番目の要素をeに置き換える 
 rplc :: Int -> Maybe a -> [a] -> Maybe [a]
 rplc 0 e (y:ys) = e >>= (\e' -> (Just (e' : ys)))
 rplc n e (y:ys) = weak_cons y (rplc (n-1) e ys)
 rplc _ _ _      = Nothing
 
-
 nodeW :: a -> Maybe [Tree a] -> Maybe (Tree a)
 nodeW t (Just ls) = Just (Node t ls)
 nodeW t Nothing   = Nothing
 
-list_interp :: (OTBase a b) -> (ListCommand b c) -> Tree c -> Maybe (Tree c)
+list_interp :: (Eq t) => OTBase t cmd -> ListCommand cmd t -> Tree t -> Maybe (Tree t)
 list_interp ot (TreeInsert n l) (Node x0 ls) = nodeW x0 (ins n l ls)
 list_interp ot (TreeRemove n l) (Node x0 ls) = nodeW x0 (rm n l ls)
 list_interp ot (EditLabel c) (Node x0 ls) =
@@ -80,12 +89,11 @@ list_interp ot (EditLabel c) (Node x0 ls) =
                           else Nothing
 
 
-tree_interp :: (OTBase a b) -> (TreeCommand b c) -> c -> Maybe (Tree c) 
+tree_interp :: (Eq t) => OTBase t cmd -> TreeCommand cmd t -> Tree t -> Maybe (Tree t) 
 tree_interp ot (Atomic c) (Node x0 ls) = list_interp ot c (Node x0 ls)
 tree_interp ot (OpenRoot n c) (Node x0 ls) = 
-    nodeW x0 (rplc n ((ls !! n) >>= (tree_interp ot c)) ls) 
+    nodeW x0 (rplc n ((nth n ls) >>= (tree_interp ot c)) ls) 
 
--- TODO: list_it 
 list_it :: (OTBase a b) -> (ListCommand b c)
            -> (ListCommand b c) -> Bool -> [ListCommand b c]
 
@@ -105,18 +113,16 @@ list_it ot (TreeInsert n1 l1) (TreeRemove n2 l2) _
 
 list_it ot (TreeInsert n1 l1) (EditLabel _) _ = (TreeInsert n1 l1) : []
 
--- TODO
--- list_it ot (TreeRemove n1 l1) (TreeInsert n2 l2) flag =
---     let op1 = TreeRemove n1 l1 in
---     let len1 = length l1; len2 = length l2 in
---     if (n1 + len1) < n2 then op1 : [] 
---                         else ( if n2 < n1 then (TreeRemove (n1 + len2) l1) : []
---                                           else )
---
---     where op1 = TreeRemove n1 l1
---           len1 = length l1
---           len2 = length l2
---           insed = ins (n2 - n1) l2 l1
+list_it ot (TreeRemove n1 l1) (TreeInsert n2 l2) flag
+    | n1 + len1 < n2 = op1 : []
+    | n2 < n1        = (TreeRemove (n1 + len2) l1) : []
+    | otherwise      =
+       let ml = ins (n2 - n1) l2 l1 in
+       if isJust ml then 
+       let Just l' = ml in (TreeRemove n1 l') : []
+       else op1 : []
+    where op1 = TreeRemove n1 l1
+          len1 = length l1; len2 = length l2
 
 list_it ot (TreeRemove n1 l1) (TreeRemove n2 l2) flag
     | (n2 + len2) < n1 = (TreeRemove (n1 - len2) l1) : []
@@ -128,12 +134,14 @@ list_it ot (TreeRemove n1 l1) (TreeRemove n2 l2) flag
 
 list_it ot (TreeRemove n1 l1) (EditLabel _) flag = (TreeRemove n1 l1) : []
 
-list_it ot (EditLabel c1) (EditLabel c2) flag = map (\y -> EditLabel y) (it ot c1 c2 flag)
+list_it ot (EditLabel c1) (EditLabel c2) flag =
+    map (\y -> EditLabel y) (it ot c1 c2 flag)
+
 list_it ot (EditLabel c1) _ _ = (EditLabel c1) : []
 
 
-tree_it :: (OTBase a b) -> (TreeCommand b c)
-           -> (TreeCommand b c) -> Bool -> [TreeCommand b c]
+tree_it :: (Eq t) => OTBase t cmd -> TreeCommand cmd t
+           -> TreeCommand cmd t -> Bool -> [TreeCommand cmd t]
 
 tree_it ot (Atomic c1) (Atomic c2) flag =
     map (\a -> Atomic a) (list_it ot c1 c2 flag)
@@ -142,7 +150,7 @@ tree_it ot (Atomic (TreeRemove n1 l)) (OpenRoot n2 c2) flag =
     let op1 = Atomic (TreeRemove n1 l) in
     let notrem = isNothing (tr_rem (length l) n2 n1) in
     let j = (n2 - n1) in
-    let binded = (l !! j) >>= (tree_interp ot c2) in
+    let binded = (nth j l) >>= (tree_interp ot c2) in
     let rplced = rplc j binded l in
     let doesrplc = isJust rplced in
     if notrem && doesrplc
