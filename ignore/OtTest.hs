@@ -1,11 +1,9 @@
-import Ot
+import Ot2
 
-otbase = BuildOTBase interp 
-tree = Node "a" [Node "a" [], Node "b" []]
-numtree = Node 1 [Node 2 [], Node 3 []]
+import Data.Char
 
--- op1 = Atomic (TreeInsert 1 (Node "c" []))
--- op2 = Atomic (TreeInsert 2 (Node "d" []))
--- test = tree_it ot op1 op2
+tree = Node "r" [Node "a" [], Node "b" [], Node "c" []]
 
-test = tree_it 
+op1 = Atomic (TreeInsert 2 (Node "d" []))
+op2 = Atomic (TreeRemove 0 (Node "a" []))
+test = tree_it op1 op2
