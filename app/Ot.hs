@@ -97,7 +97,7 @@ tree_interp (OpenRoot n c) (Node x0 ls) =
 
 
 text_it :: LabelCommand -> LabelCommand -> Bool -> [LabelCommand]
-text_it c1 c2 f = if f then [c2] else [c2]
+text_it c1 c2 f = [c2]
 
 
 list_it :: ListCommand -> ListCommand -> Bool -> [ListCommand]
