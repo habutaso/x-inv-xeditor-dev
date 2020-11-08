@@ -20,5 +20,5 @@ test op1 op2 = do
     putStrLn $ "\ntree: " ++ (show tree)
     putStrLn $ "op1: " ++ (show op1) ++ "\nop2: " ++ (show op2)
     putStrLn $ "\ntransformed:"
-    putStrLn $ "s12: " ++ (show $ trans op1 op2 False)
-    putStrLn $ "s21: " ++ (show $ trans op2 op1 True)
+    putStrLn $ "s12: " ++ (show $ trans op1 op2 True)
+    putStrLn $ "s21: " ++ (show $ trans op2 op1 False)
