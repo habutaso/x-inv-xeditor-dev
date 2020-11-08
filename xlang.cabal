@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ac9e9c78254d6750c68f6ac3d66de7fa0d5be0d5113158ad2eef607a1f964955
+-- hash: 22b6e4526cdcb6b74344fbf9bf529cc9bb8034f2a10396f12d2e9d8325902aef
 
 name:           xlang
 version:        0.1.0.0
@@ -59,7 +59,6 @@ executable xlang-exe
       InXmlTest
       Marshall
       Ot
-      Ot2
       Val
       View
       X
