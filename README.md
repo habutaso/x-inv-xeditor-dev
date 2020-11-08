@@ -9,10 +9,8 @@ This project aim to expand conflict resolution for X/Inv/XEditor.
 This program is not compatible with `wx`
 
 ## Run
-`app/EditorInf.hs` is main file for bidirecitonal transformation.  
-Excecute `stack ghci` to load main file.
-
-Besides you can run X by using the following commands.
+### Bidirectional Transformation
+You can run X by using the following commands.
 
 ```
 stack ghci --no-load
@@ -20,3 +18,11 @@ stack ghci --no-load
 Prelude> :load app/X.hs
 ```
 If you want to execute InXmlTest.hs, load `app/InXmlTest.hs` in the REPL.
+
+## Operational Transformation
+
+```
+stack ghci --no-load
+
+Prelude> :load ignore/OtTest.hs
+```
