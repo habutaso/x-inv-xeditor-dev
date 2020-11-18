@@ -12,8 +12,8 @@ op4 = Atomic (EditLabel (UStr "hello"))
 op5 = Atomic (EditLabel (UStr "world"))
 
 trans op1 op2 flag =
-    let op' = tree_it op2 op1 flag in
-    let t' = tree_interp op1 tree in
+    let op' = tree_it op1 op2 flag in
+    let t' = tree_interp op2 tree in
     (tree_interp (head op')) =<< t'
 
 test op1 op2 = do
@@ -22,3 +22,5 @@ test op1 op2 = do
     putStrLn $ "\ntransformed:"
     putStrLn $ "s12: " ++ (show $ trans op1 op2 True)
     putStrLn $ "s21: " ++ (show $ trans op2 op1 False)
+
+foldtest = foldr (\t s -> tree_interp s t) tree [op1, op2] 

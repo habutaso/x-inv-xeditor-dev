@@ -3,13 +3,6 @@ module Ot where
 import Data.Char
 import Data.Maybe
 
-data Tr = 
-      Nill
-    | Str String
-    | Nod Tr Tr
-    | Child [Tr]
-    deriving (Eq, Show)
-
 data Tree t = 
       Node t [Tree t] 
     deriving (Eq, Show)

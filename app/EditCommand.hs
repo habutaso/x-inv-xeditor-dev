@@ -26,6 +26,7 @@ insertL v n Nl = Nl -- should be an error
 insertL v n (a :@ x) = a :@ insertL v (n-1) x
 
 delete :: Path -> Val -> Val
+delete [] _ = Nl
 delete [i] (Nod a ts) = Nod a (deleteL i ts)
 delete (i:is) (Nod a ts) = Nod a (applyIth (delete is) i ts)
 
