@@ -42,5 +42,5 @@ src = read "{'Staff', {'Member', \
 
 testsrc :: Val
 testsrc = read "{'r', {'a', 'd':'e':[]}:\
-\{'b', 'f':[]}:\
-\{'c', 'g':[]}:[]}"
+\^({'b', 'f':[]}:\
+\{'c', 'g':[]}:[])}"
