@@ -11,7 +11,6 @@ cvtStr s = Str s
 
 otToVal :: Tree String -> Val
 otToVal (Node s []) = cvtStr s
--- otToVal (Tree s) = cvtStr s
 otToVal (Node s ts) = Nod (cvtStr s) (foldr (:@) Nl (map otToVal ts))
 
 valToOt :: Val -> Tree String
