@@ -279,6 +279,7 @@ eqWith (DStr s) x (Str s')
 eqWith (DF f) x _ = return x   -- is this right ?
 eqWith (DP dp) x a =
    do a' <- dupWith (DP dp) x
+      putStrLn $ show a'
       -- ラベルの競合解決はここ(木もここ？？)
       a'' <- eq a a'
       return (invite dp x a')
