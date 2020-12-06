@@ -284,7 +284,7 @@ eqWith (DP dp) x a =
    do a' <- dupWith (DP dp) x
       -- ラベルの競合解決はここ(木もここ？？)
       a'' <- eq a a'
-      return (invite dp x a')
+      return (invite dp x a'')
 eqWith p x y = error ("non-exhaustive pattern in eqWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
 
 -- dup_eqWith (DP dp) x a = do 
