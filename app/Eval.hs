@@ -27,7 +27,10 @@ invert (Inv f) = f
 invert (Define name f) = Define (name ++ "^o") (invert f)
 invert f = (Inv f)
 
+-- SymTable a :: [(String, ([Inv a] -> Bool, [Inv a] -> Inv a))]
+-- get :: SymTable Val -> Inv Val -> Val -> M Val
 get st = eval st
+-- put :: SymTable Val -> Inv Val -> Val -> Either (Err (Inv Val) Val) Val
 put st f = liftM normalise . eval st (invert f)
 
 eval :: SymTable Val -> Inv Val -> Val -> M Val
@@ -283,6 +286,10 @@ eqWith (DP dp) x a =
       a'' <- eq a a'
       return (invite dp x a')
 eqWith p x y = error ("non-exhaustive pattern in eqWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
+
+-- dup_eqWith (DP dp) x a = do 
+--     a' <- dupWith (DP dp) x
+      
 
 -- invite :: [DP] -> Val -> Val -> Val
 invite [] _ a = a

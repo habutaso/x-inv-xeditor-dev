@@ -59,6 +59,7 @@ editorTransUpdate p (xsrc, f, xtar) f' =
   editorGetXML (xsrc, f `seqx` applyPath p f', xtar)
 
 -- for testing only
+-- editorPut :: State -> Command Val -> Either (Err (Inv Val) Val) Val 
 editorPut (src,f,tar) cmd =
   do let tar' = applyCmd cmd tar
      src' <- eval xprelude (Inv f) (src :& tar')
@@ -85,7 +86,7 @@ editorPut (src,f,tar) cmd =
 --     src' <- eval xprelude (Inv f) (src :& tar')
 --     return src'
 
-src' = extract (editorPut (src,transform,tar) (Insert [0,0] (read "'z'")))
+src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
 
 
 
