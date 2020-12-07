@@ -1,4 +1,4 @@
-module ValtoOt where
+module ValtoOt (otToVal, valToOt) where
 
 import Data.Char
 import Text.XML.Light.Types

@@ -13,6 +13,7 @@ import EditCommand
 import X
 import Marshall
 import Ot
+import ValtoOt
 
 import Data.Char
 import Text.XML.Light.Types
@@ -65,6 +66,16 @@ editorPut (src,f,tar) cmd =
      src' <- eval xprelude (Inv f) (src :& tar')
      return src'
 
+editorPut2 (src,f,tar) = do
+    src' <- eval xprelude (Inv f) (src :& tar)
+    return src'
+
+editorPutXML :: XMLState -> Either (Err (Inv Val) Val) XMLState
+editorPutXML (xsrc,f,xtar) =
+  do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
+     src' <- editorPut2 (src,f,tar)
+     let (xsrc', xtar') = (valToXML src', valToXML tar)
+     return (xsrc',f,xtar')
 -- xToOt :: Command Val -> TreeCommand
 -- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Node s []))
 -- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Node s ts))
@@ -80,13 +91,12 @@ editorPut (src,f,tar) cmd =
 -- applyOt :: [Command Val] -> Command Val
 -- applyOt cmds = Nl
 
-
--- editorMPut (src,f,tar) cmds = do
---     let tar' = applyCmd $ applyOt cmds
---     src' <- eval xprelude (Inv f) (src :& tar')
---     return src'
+-- extend OT conflict resolution
+editorPutDup p (xsrc,f,xtar) =
+  editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar)
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
+src'' = extract (editorPut (src,transform,tar) (Delete [0,1]))
 
 
 
@@ -142,7 +152,7 @@ src, tar :: Val
 -- src = read "{'Staff', {'Member', 'Takeichi':'takeichi@ipl':'03-12345678':[]}:[]}"
 src2 :: Val
 src2 = read "{'Staff', {'Member', \
-\{'name', 'Takeichi':[]}:\
+\{'_dup', 'Takeichi':[]}:\
 \{'email', 'takeichi@ipl':[]}:\
 \{'phone', '03-12345678':[]}:[]}:[]}"
 

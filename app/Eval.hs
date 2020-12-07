@@ -262,7 +262,7 @@ visit (DNode:dp) (Nod a x) = visit dp (a :& x)
 visit p Undef = return Undef
 visit p x = throwErr (ProjFail (Dup (DP p)) x)
 
-eqWith :: DWith Val -> Val -> Val -> M Val
+-- eqWith :: DWith Val -> Val -> Val -> M Val
 eqWith DNil x Nl = return x
 eqWith DNil x Undef = return x  -- ok?
 eqWith DNil x y = throwErr (EqFail y Nl)
@@ -272,10 +272,16 @@ eqWith DZero x (Del (Num 0)) = return x  -- ok?
 eqWith DZero x (Ins (Num 0)) = return x  -- ok?
 eqWith DZero x Undef = return x -- ok?
 eqWith DZero x y = throwErr (EqFail x (Num 0))
+-- for test _dup
 eqWith (DStr s) x Undef = return x
+eqWith (DStr "_dup") x (Ins (Str s')) = liftM Ins (eqWith (DStr "_dupppp") x (Str s'))
 eqWith (DStr s) x (Ins (Str s')) = liftM Ins (eqWith (DStr s) x (Str s'))
 -- eqWith (DStr a) (Ins (Str a')) (Ins (Str a'')) 
+eqWith (DStr "_dup") x (Del (Str s')) = liftM Del (eqWith (DStr "_dupppp") x (Str s'))
 eqWith (DStr s) x (Del (Str s')) = liftM Del (eqWith (DStr s) x (Str s'))
+eqWith (DStr s) x (Del (Str "_dup"))
+     | s == "_dup" = return x
+     | otherwise = throwErr (EqFail (Str s) (Str "_dup"))
 eqWith (DStr s) x (Str s') 
      | s == s' = return x
      | otherwise = throwErr (EqFail (Str s) (Str s'))

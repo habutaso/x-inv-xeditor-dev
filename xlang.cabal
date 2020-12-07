@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 06769f1571393ed0625deee1a174ed7ae8168d05ffd7b15867e0fcdd03c7a707
+-- hash: 9cd97615409f587d9fb02aacd926fd6cce8c8fa3acad5e537c40b7926044a258
 
 name:           xlang
 version:        0.1.0.0
@@ -48,6 +48,7 @@ library
 executable xlang-exe
   main-is: Main.hs
   other-modules:
+      CommandToOt
       EditCommand
       EditorInf
       EditorInf2
