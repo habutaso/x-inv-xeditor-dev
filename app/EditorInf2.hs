@@ -96,8 +96,6 @@ editorPutDup p (xsrc,f,xtar) =
   editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar)
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
-src'' = extract (editorPut (src,transform,tar) (Delete [0,1]))
-
 
 
 doCommand :: Inv Val -> Command Val -> Val -> 
@@ -152,7 +150,7 @@ src, tar :: Val
 -- src = read "{'Staff', {'Member', 'Takeichi':'takeichi@ipl':'03-12345678':[]}:[]}"
 src2 :: Val
 src2 = read "{'Staff', {'Member', \
-\{'_dup', 'Takeichi':[]}:\
+\{'name', 'Takeichi':[]}:\
 \{'email', 'takeichi@ipl':[]}:\
 \{'phone', '03-12345678':[]}:[]}:[]}"
 

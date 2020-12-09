@@ -247,6 +247,8 @@ cross f g (a :& b) = f a :& g b
 dupWith :: DWith Val-> Val -> M Val
 dupWith DNil _ = return Nl
 dupWith DZero _ = return (Num 0)
+-- editorDup時にこの関数のこのパターンマッチ呼ばれた
+-- dupWith (DStr "_dup") _ = return (Str "_dupppp")
 dupWith (DStr s) _ = return (Str s)
 dupWith (DF f) x = return (f x)
 dupWith (DP dp) x = visit dp x
@@ -274,14 +276,13 @@ eqWith DZero x Undef = return x -- ok?
 eqWith DZero x y = throwErr (EqFail x (Num 0))
 -- for test _dup
 eqWith (DStr s) x Undef = return x
-eqWith (DStr "_dup") x (Ins (Str s')) = liftM Ins (eqWith (DStr "_dupppp") x (Str s'))
+-- eqWith (DStr "_dup") x (Ins (Str s')) = liftM Ins (eqWith (DStr "_dupppp") x (Str s'))
+-- eqWith (DStr s) x (Ins (Str "_dup")) = liftM Ins (eqWith (DStr s) x (Str "_dupppp"))
 eqWith (DStr s) x (Ins (Str s')) = liftM Ins (eqWith (DStr s) x (Str s'))
 -- eqWith (DStr a) (Ins (Str a')) (Ins (Str a'')) 
-eqWith (DStr "_dup") x (Del (Str s')) = liftM Del (eqWith (DStr "_dupppp") x (Str s'))
+-- eqWith (DStr "_dup") x (Del (Str s')) = liftM Del (eqWith (DStr "_dupppp") x (Str s'))
 eqWith (DStr s) x (Del (Str s')) = liftM Del (eqWith (DStr s) x (Str s'))
-eqWith (DStr s) x (Del (Str "_dup"))
-     | s == "_dup" = return x
-     | otherwise = throwErr (EqFail (Str s) (Str "_dup"))
+-- eqWith (DStr s) x (Del (Str "_dup")) = liftM Del (eqWith (DStr s) x (Str "_dupppp"))
 eqWith (DStr s) x (Str s') 
      | s == s' = return x
      | otherwise = throwErr (EqFail (Str s) (Str s'))
