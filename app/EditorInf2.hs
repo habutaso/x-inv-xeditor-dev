@@ -97,6 +97,9 @@ editorPutDup p (xsrc,f,xtar) =
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
 
+(s,ff,v) = extract (editorDup [0,1] (xsrc,transform,xtar))
+-- :break Eval 294
+-- :trace extract (editorPutDup [0,1,0] (s,ff,v))
 
 doCommand :: Inv Val -> Command Val -> Val -> 
              Either (Err (Inv Val) Val) [Command Val]

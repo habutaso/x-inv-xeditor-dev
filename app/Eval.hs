@@ -291,7 +291,10 @@ eqWith (DP dp) x a =
    do a' <- dupWith (DP dp) x
       -- ラベルの競合解決はここ(木もここ？？)
       a'' <- eq a a'
-      return (invite dp x a'')
+      return (case a'' of
+        (Str "_dup") -> invite dp x (Str "_dpp")
+        _ -> invite dp x a'')
+
 eqWith p x y = error ("non-exhaustive pattern in eqWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
 
 -- dup_eqWith (DP dp) x a = do 
@@ -328,6 +331,7 @@ eq a Undef = return a
 eq Undef a = return a
 eq (Ins Undef) a = return Undef   -- quick hack for numbering!
 eq a (Ins Undef) = return Undef -- quick hack for numbering! not right!
+eq (Str "_dup") b = return (Str "_dup")
 eq a b | a == b = return a
        | otherwise = throwErr (EqFail a b)
 
