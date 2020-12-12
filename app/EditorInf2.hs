@@ -66,40 +66,37 @@ editorPut (src,f,tar) cmd =
      src' <- eval xprelude (Inv f) (src :& tar')
      return src'
 
-editorPut2 (src,f,tar) = do
-    src' <- eval xprelude (Inv f) (src :& tar)
-    return src'
+editorMPut (src,f,tar) cmds =
+  do let tar' = applyCmds cmds tar
+     src' <- eval xprelude (Inv f) (src :& tar')
+     return src'
 
-editorPutXML :: XMLState -> Either (Err (Inv Val) Val) XMLState
-editorPutXML (xsrc,f,xtar) =
+editorPutXML :: XMLState -> [Command Val] -> Either (Err (Inv Val) Val) XMLState
+editorPutXML (xsrc,f,xtar) cmds =
   do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
-     src' <- editorPut2 (src,f,tar)
+     src' <- editorMPut (src,f,tar) cmds
      let (xsrc', xtar') = (valToXML src', valToXML tar)
      return (xsrc',f,xtar')
--- xToOt :: Command Val -> TreeCommand
--- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Node s []))
--- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Node s ts))
--- xToOt (Insert (p:ps) (Nod s ts)) = OpenRoot p (xToOt (Insert ps (Nod s ts)))
--- TODO: Ot.TreeRemove は Nodeが一致していたら削除
--- というルールが一応あるが．それを無視してもよいのか．
--- xToOt (Delete p) = Atomic ()
--- xToOt (Delete (p:ps)) = OpenRoot p (xToOt (Delete ps ))
--- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
--- xToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
---     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
-
--- applyOt :: [Command Val] -> Command Val
--- applyOt cmds = Nl
 
 -- extend OT conflict resolution
-editorPutDup p (xsrc,f,xtar) =
-  editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar)
+editorPutDup p (xsrc,f,xtar) cmd =
+  editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar) cmd
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
 
-(s,ff,v) = extract (editorDup [0,1] (xsrc,transform,xtar))
 -- :break Eval 294
 -- :trace extract (editorPutDup [0,1,0] (s,ff,v))
+
+test = do
+    let (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
+    let cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
+    let (s2,f2,v2) = extract $ editorPutDup [0,1] (s,transform,v) cmds
+    putStrLn "source"
+    putStrLn $ ppContent s
+    putStrLn "\nview"
+    putStrLn $ ppContent v
+    putStrLn "\nupdated source"
+    putStrLn $ ppContent s2
 
 doCommand :: Inv Val -> Command Val -> Val -> 
              Either (Err (Inv Val) Val) [Command Val]
@@ -151,13 +148,10 @@ transform = idx -- EditorInf.toc
 
 src, tar :: Val
 -- src = read "{'Staff', {'Member', 'Takeichi':'takeichi@ipl':'03-12345678':[]}:[]}"
-src2 :: Val
-src2 = read "{'Staff', {'Member', \
+src = read "{'Staff', {'Member', \
 \{'name', 'Takeichi':[]}:\
 \{'email', 'takeichi@ipl':[]}:\
 \{'phone', '03-12345678':[]}:[]}:[]}"
-
-src = src2
 
 (_:& tar) = extract (get [] transform src)
 
@@ -189,20 +183,6 @@ testsrc = read "{'r', {'a', 'd':'e':[]}:\
 \{'b', 'f':[]}:\
 \{'c', 'g':[]}:[]}"
 
-test = do
-    showSrc testsrc
-    let view = extract $ get [] transform testsrc
-    putVal view
-    let t = Nod (Str "newnode") ((Str "newvalue") :@ Nl)
-    let label = (Str "newlabel")
-    let icmd = Insert [0,0,1] t
-    let dcmd = Delete [0,0,1]
-    -- let ecmd = EditCommand.EditLabel [0,1] label
-    let view' = (applyCmd dcmd) view
-    let src' = extract $ put [] transform view'
-    showSrc src'
-
-
 getSource :: IO Val
 getSource = return src
 
@@ -231,3 +211,18 @@ lsTree s = Dup (DStr s) <.> Swap <.> Inv.Node
 
 extract (Right a) = a
 extract (Left err) = error (show err)
+
+-- xToOt :: Command Val -> TreeCommand
+-- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Node s []))
+-- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Node s ts))
+-- xToOt (Insert (p:ps) (Nod s ts)) = OpenRoot p (xToOt (Insert ps (Nod s ts)))
+-- TODO: Ot.TreeRemove は Nodeが一致していたら削除
+-- というルールが一応あるが．それを無視してもよいのか．
+-- xToOt (Delete p) = Atomic ()
+-- xToOt (Delete (p:ps)) = OpenRoot p (xToOt (Delete ps ))
+-- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
+-- xToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
+--     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
+
+-- applyOt :: [Command Val] -> Command Val
+-- applyOt cmds = Nl

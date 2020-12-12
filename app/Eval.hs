@@ -285,6 +285,8 @@ eqWith (DStr s) x (Del (Str s')) = liftM Del (eqWith (DStr s) x (Str s'))
 -- eqWith (DStr s) x (Del (Str "_dup")) = liftM Del (eqWith (DStr s) x (Str "_dupppp"))
 eqWith (DStr s) x (Str s') 
      | s == s' = return x
+     -- "_dup" はここで一回通す
+     | s == "_dup" = return x
      | otherwise = throwErr (EqFail (Str s) (Str s'))
 eqWith (DF f) x _ = return x   -- is this right ?
 eqWith (DP dp) x a =
@@ -314,6 +316,8 @@ invite (DNode:dp) (Nod b x) a = doNode (invite dp (b :& x) a)
 doCons (a :& b) = a :@ b
 doNode (a :& b) = Nod a b
 
+eq (Str "_dup") b = return (Str "_dpa")
+eq a (Str "_dup") = return (Str "_dpb")
 eq (Mark a) b = return (Mark a)
 eq a (Mark b) = return (Mark b)
 eq (Del a) b | a == b = return (Del a)
@@ -331,7 +335,6 @@ eq a Undef = return a
 eq Undef a = return a
 eq (Ins Undef) a = return Undef   -- quick hack for numbering!
 eq a (Ins Undef) = return Undef -- quick hack for numbering! not right!
-eq (Str "_dup") b = return (Str "_dup")
 eq a b | a == b = return a
        | otherwise = throwErr (EqFail a b)
 

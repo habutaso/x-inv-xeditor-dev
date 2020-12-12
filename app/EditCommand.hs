@@ -1,4 +1,4 @@
-module EditCommand (Command(..), Path, applyCmd) where
+module EditCommand (Command(..), Path, applyCmds, applyCmd) where
 
 import Val
 
@@ -10,6 +10,9 @@ data Command a = Insert Path a
   deriving (Show, Read)
 
 type Path = [Int]
+
+applyCmds [] tar = tar
+applyCmds (c:cs) tar = applyCmds cs $ applyCmd c tar
 
 applyCmd :: Command Val -> Val -> Val
 applyCmd (Insert p v) = insert v p
