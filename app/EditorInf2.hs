@@ -86,6 +86,12 @@ src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
 
 -- :break Eval 294
 -- :trace extract (editorPutDup [0,1,0] (s,ff,v))
+(s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
+
+cmds :: [Command Val]
+cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
+
+ottest cs = extract $ editorPutDup [0,1] (s,transform,v) cs
 
 test = do
     let (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)

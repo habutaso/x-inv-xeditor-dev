@@ -159,6 +159,7 @@ eval st (Dup w) x =
 --eval st (Inv (Dup w)) (Del x) = liftM Del (eval st (Inv (Dup w)) x)
 --eval st (Inv (Dup w)) (Ins x) = liftM Ins (eval st (Inv (Dup w)) x)
 -- 第一引数はDup (DWith v)
+eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
 eval st (Inv (Dup w)) (a :& b) = eqWith w a b
 eval st (Inv (Dup w)) x = outdom st (Inv (Dup w)) x
 
@@ -243,6 +244,48 @@ cross f g (a :& b) = f a :& g b
 
 
 
+otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
+otWith DNil x Nl = return x
+otWith DNil x Undef = return x  -- ok?
+otWith DNil x y = throwErr (EqFail y Nl)
+otWith DZero x (Num 0) = return x
+otWith DZero x (Mark (Num 0)) = return x -- ok?
+otWith DZero x (Del (Num 0)) = return x  -- ok?
+otWith DZero x (Ins (Num 0)) = return x  -- ok?
+otWith DZero x Undef = return x -- ok?
+otWith DZero x y = throwErr (EqFail x (Num 0))
+-- for test _dup
+otWith (DStr s) x Undef = return x
+otWith (DStr s) x (Ins (Str s')) = liftM Ins (otWith (DStr s) x (Str s'))
+-- otWith (DStr a) (Ins (Str a')) (Ins (Str a'')) 
+otWith (DStr s) x (Del (Str s')) = liftM Del (otWith (DStr s) x (Str s'))
+otWith (DStr s) x (Str s') = return x
+otWith (DF f) x _ = return x   -- is this right ?
+otWith (DP dp) x a =
+   do a' <- dupWith (DP dp) x
+      -- ラベルの競合解決はここ(木もここ？？)
+      a'' <- oteq a a'
+      return $ invite dp x a''
+
+otWith p x y = error ("non-exhaustive pattern in otWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
+oteq (Mark a) b = return (Mark a)
+oteq a (Mark b) = return (Mark b)
+oteq (Del a) b | a == b = return (Del a)
+oteq a (Del b) | a == b = return (Del a)
+oteq (a :& b) (c :& d) = liftM2 (:&) (oteq a c) (oteq b d)
+oteq (Del a :@ x) (Del _ :@ y) = liftM ((Del a):@) (oteq x y) 
+ -- otherwise we have Del twice
+oteq (Del a :@ x) (b :@ y) = liftM ((Del a):@) (oteq x y) 
+oteq (a :@ x) (Del b :@ y) = liftM ((Del a):@) (oteq x y)
+oteq (a :@ x) (b :@ y) = liftM2 (:@) (oteq a b) (oteq x y)
+oteq (Nod a x) (Nod b y) = liftM2 Nod (oteq a b) (oteq x y)
+-- oteq (Del a :@ x) y = liftM (:@) (oteq x y)
+-- oteq x (Del b :@ y) = liftM ((Del b):@) (oteq x y)   -- is this right?
+oteq a Undef = return a
+oteq Undef a = return a
+oteq (Ins Undef) a = return Undef   -- quick hack for numbering!
+oteq a (Ins Undef) = return Undef -- quick hack for numbering! not right!
+oteq a b  = return a
 
 dupWith :: DWith Val-> Val -> M Val
 dupWith DNil _ = return Nl
@@ -276,32 +319,21 @@ eqWith DZero x Undef = return x -- ok?
 eqWith DZero x y = throwErr (EqFail x (Num 0))
 -- for test _dup
 eqWith (DStr s) x Undef = return x
--- eqWith (DStr "_dup") x (Ins (Str s')) = liftM Ins (eqWith (DStr "_dupppp") x (Str s'))
--- eqWith (DStr s) x (Ins (Str "_dup")) = liftM Ins (eqWith (DStr s) x (Str "_dupppp"))
 eqWith (DStr s) x (Ins (Str s')) = liftM Ins (eqWith (DStr s) x (Str s'))
 -- eqWith (DStr a) (Ins (Str a')) (Ins (Str a'')) 
--- eqWith (DStr "_dup") x (Del (Str s')) = liftM Del (eqWith (DStr "_dupppp") x (Str s'))
 eqWith (DStr s) x (Del (Str s')) = liftM Del (eqWith (DStr s) x (Str s'))
--- eqWith (DStr s) x (Del (Str "_dup")) = liftM Del (eqWith (DStr s) x (Str "_dupppp"))
 eqWith (DStr s) x (Str s') 
      | s == s' = return x
      -- "_dup" はここで一回通す
-     | s == "_dup" = return x
      | otherwise = throwErr (EqFail (Str s) (Str s'))
 eqWith (DF f) x _ = return x   -- is this right ?
 eqWith (DP dp) x a =
    do a' <- dupWith (DP dp) x
       -- ラベルの競合解決はここ(木もここ？？)
       a'' <- eq a a'
-      return (case a'' of
-        (Str "_dup") -> invite dp x (Str "_dpp")
-        _ -> invite dp x a'')
+      return $ invite dp x a''
 
 eqWith p x y = error ("non-exhaustive pattern in eqWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
-
--- dup_eqWith (DP dp) x a = do 
---     a' <- dupWith (DP dp) x
-      
 
 -- invite :: [DP] -> Val -> Val -> Val
 invite [] _ a = a
@@ -316,8 +348,6 @@ invite (DNode:dp) (Nod b x) a = doNode (invite dp (b :& x) a)
 doCons (a :& b) = a :@ b
 doNode (a :& b) = Nod a b
 
-eq (Str "_dup") b = return (Str "_dpa")
-eq a (Str "_dup") = return (Str "_dpb")
 eq (Mark a) b = return (Mark a)
 eq a (Mark b) = return (Mark b)
 eq (Del a) b | a == b = return (Del a)
