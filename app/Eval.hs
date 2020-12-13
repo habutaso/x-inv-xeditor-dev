@@ -1,11 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Eval (eval, invert, get, put, M) where
 
+import Data.List
 import qualified Data.Tree
 import Control.Monad.Error
 
 import Val
 import Inv
+import Ot
+import EditCommand
 import Error
 
 
@@ -93,14 +96,14 @@ eval st (Inv Inr) x = outdom st (Inv Inr) x
 
 --eval st Node (Del x) = liftM Del (eval st Node x)
 --eval st Node (Ins x) = liftM Ins (eval st Node x)
-eval st Node (a :& x) = return (Nod a x)
-eval st Node x = outdom st Node x
+eval st Inv.Node (a :& x) = return (Nod a x)
+eval st Inv.Node x = outdom st Inv.Node x
 
-eval st (Inv Node) (Nod a ts) = return (a :& ts)
---eval st (Inv Node) (Del x) = liftM Del (eval st (Inv Node) x)
---eval st (Inv Node) (Ins x) = liftM Ins (eval st (Inv Node) x)
-eval st (Inv Node) Undef = return (Undef :& Undef)
-eval st (Inv Node) x =  outdom st (Inv Node) x
+eval st (Inv Inv.Node) (Nod a ts) = return (a :& ts)
+--eval st (Inv Inv.Node) (Del x) = liftM Del (eval st (Inv Inv.Node) x)
+--eval st (Inv Inv.Node) (Ins x) = liftM Ins (eval st (Inv Inv.Node) x)
+eval st (Inv Inv.Node) Undef = return (Undef :& Undef)
+eval st (Inv Inv.Node) x =  outdom st (Inv Inv.Node) x
 
 eval st Swap (a :& b) = return (b :& a)
 --eval st Swap (Del x) = liftM Del (eval st Swap x)
@@ -159,7 +162,7 @@ eval st (Dup w) x =
 --eval st (Inv (Dup w)) (Del x) = liftM Del (eval st (Inv (Dup w)) x)
 --eval st (Inv (Dup w)) (Ins x) = liftM Ins (eval st (Inv (Dup w)) x)
 -- 第一引数はDup (DWith v)
-eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
+-- eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
 eval st (Inv (Dup w)) (a :& b) = eqWith w a b
 eval st (Inv (Dup w)) x = outdom st (Inv (Dup w)) x
 
@@ -243,49 +246,50 @@ cross f g (a :& b) = f a :& g b
 
 
 
+diff :: Val -> [Command Val]
+diff (Nod (Mark v) x) = EditCommand.EditLabel [] v : diff (Nod v x)
+diff (Nod _ x) = diffL 0 x
+diff (Mark v) = [EditCommand.EditLabel [] v]
+diff _ = []
 
-otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
-otWith DNil x Nl = return x
-otWith DNil x Undef = return x  -- ok?
-otWith DNil x y = throwErr (EqFail y Nl)
-otWith DZero x (Num 0) = return x
-otWith DZero x (Mark (Num 0)) = return x -- ok?
-otWith DZero x (Del (Num 0)) = return x  -- ok?
-otWith DZero x (Ins (Num 0)) = return x  -- ok?
-otWith DZero x Undef = return x -- ok?
-otWith DZero x y = throwErr (EqFail x (Num 0))
--- for test _dup
-otWith (DStr s) x Undef = return x
-otWith (DStr s) x (Ins (Str s')) = liftM Ins (otWith (DStr s) x (Str s'))
--- otWith (DStr a) (Ins (Str a')) (Ins (Str a'')) 
-otWith (DStr s) x (Del (Str s')) = liftM Del (otWith (DStr s) x (Str s'))
-otWith (DStr s) x (Str s') = return x
-otWith (DF f) x _ = return x   -- is this right ?
-otWith (DP dp) x a =
-   do a' <- dupWith (DP dp) x
-      -- ラベルの競合解決はここ(木もここ？？)
-      a'' <- oteq a a'
-      return $ invite dp x a''
+diffL n Nl = []
+diffL n (Del a :@ x) = Delete [n] : diffL n x
+diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
+diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
 
-otWith p x y = error ("non-exhaustive pattern in otWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
-oteq (Mark a) b = return (Mark a)
-oteq a (Mark b) = return (Mark b)
-oteq (Del a) b | a == b = return (Del a)
-oteq a (Del b) | a == b = return (Del a)
-oteq (a :& b) (c :& d) = liftM2 (:&) (oteq a c) (oteq b d)
-oteq (Del a :@ x) (Del _ :@ y) = liftM ((Del a):@) (oteq x y) 
- -- otherwise we have Del twice
-oteq (Del a :@ x) (b :@ y) = liftM ((Del a):@) (oteq x y) 
-oteq (a :@ x) (Del b :@ y) = liftM ((Del a):@) (oteq x y)
-oteq (a :@ x) (b :@ y) = liftM2 (:@) (oteq a b) (oteq x y)
-oteq (Nod a x) (Nod b y) = liftM2 Nod (oteq a b) (oteq x y)
--- oteq (Del a :@ x) y = liftM (:@) (oteq x y)
--- oteq x (Del b :@ y) = liftM ((Del b):@) (oteq x y)   -- is this right?
-oteq a Undef = return a
-oteq Undef a = return a
-oteq (Ins Undef) a = return Undef   -- quick hack for numbering!
-oteq a (Ins Undef) = return Undef -- quick hack for numbering! not right!
-oteq a b  = return a
+deepen n (Insert p v) = Insert (n:p) v
+deepen n (Delete p) = Delete (n:p)
+deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
+
+-- diffToOt (Nod (Mark v) x) = EditLabel [] v : diffToOt (Nod v x)
+-- diffToOt (Nod _ x ) = diffL 0 x
+-- diffToOt (Mark v) = [EditLabel [] v]
+-- diffToOt _ = []
+
+-- diffL n Nl = []
+-- diffL n (Del a :@ x) = InsertTree []
+
+-- xToOt :: Command Val -> TreeCommand
+-- xToOt (Insert (p:ps) (Nod s ts)) = OpenRoot p (xToOt (Insert ps (Nod s ts)))
+-- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Ot.Node s []))
+-- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Ot.Node s ts))
+-- -- TODO: Ot.TreeRemove は Ot.Nodeが一致していたら削除
+-- -- というルールが一応あるが．それを無視してもよいのか．
+-- xToOt (Delete (p:ps)) = OpenRoot p (xToOt (Delete ps))
+-- xToOt (Delete p) = Atomic (TreeRemove p (Ot.Node "_dummy" []))
+-- xToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
+--     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
+-- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
+
+-- otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
+
+-- -- とりあえず，各オペレーションでInsertが一つの時だけを考える
+-- otWith (DStr "_dup") a b =
+--     let (l :@ (r :@ _)) = a in
+--     let cl = diff l; cr = diff r in
+--     let otcl = map xToOt cl; otcr = map xToOt cr in
+--     throwErr (EqFail (Str (show l ++ show otcl)) (Str (show r ++ show otcr)))
+
 
 dupWith :: DWith Val-> Val -> M Val
 dupWith DNil _ = return Nl

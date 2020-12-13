@@ -49,7 +49,8 @@ ins n es (x:xs) = weak_cons x (ins (n-1) es xs)
 rm :: (Eq a) => Int -> [a] -> [a] -> Maybe [a]
 rm _ [] xs         = Just xs 
 rm _ (e:es) []     = Nothing
-rm 0 (e:es) (x:xs) = if e == x then rm 0 es xs else Nothing
+-- rm 0 (e:es) (x:xs) = if e == x then rm 0 es xs else Nothing
+rm 0 (e:es) (x:xs) = rm 0 es xs
 rm n es (x:xs)     = weak_cons x (rm (n-1) es xs)
 
 -- リストのs番目からr個削除する
