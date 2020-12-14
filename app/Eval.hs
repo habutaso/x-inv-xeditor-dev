@@ -8,6 +8,7 @@ import Control.Monad.Error
 import Val
 import Inv
 import Ot
+import ValtoOt
 import EditCommand
 import Error
 
@@ -265,21 +266,9 @@ deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
 -- diffToOt (Nod _ x ) = diffL 0 x
 -- diffToOt (Mark v) = [EditLabel [] v]
 -- diffToOt _ = []
-
+--
 -- diffL n Nl = []
 -- diffL n (Del a :@ x) = InsertTree []
-
--- xToOt :: Command Val -> TreeCommand
--- xToOt (Insert (p:ps) (Nod s ts)) = OpenRoot p (xToOt (Insert ps (Nod s ts)))
--- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Ot.Node s []))
--- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Ot.Node s ts))
--- -- TODO: Ot.TreeRemove は Ot.Nodeが一致していたら削除
--- -- というルールが一応あるが．それを無視してもよいのか．
--- xToOt (Delete (p:ps)) = OpenRoot p (xToOt (Delete ps))
--- xToOt (Delete p) = Atomic (TreeRemove p (Ot.Node "_dummy" []))
--- xToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
---     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
--- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
 
 otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
 
@@ -287,8 +276,10 @@ otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
 otWith (DStr "_dup") a b =
     let (l :@ (r :@ _)) = a in
     let cl = diff l; cr = diff r in
-    -- let otcl = map xToOt cl; otcr = map xToOt cr in
-    throwErr (EqFail (Str (show l ++ show cl)) (Str (show r ++ show cr)))
+    let otcl = map cmdToOt cl; otcr = map cmdToOt cr in
+    let oted = tree_it (head otcl) (head otcr) True in
+    -- let cmd' = otToCmd oted in
+    throwErr (EqFail (Str (show otcl)) (Str (show oted)))
 
 
 dupWith :: DWith Val-> Val -> M Val
