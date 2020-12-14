@@ -162,7 +162,7 @@ eval st (Dup w) x =
 --eval st (Inv (Dup w)) (Del x) = liftM Del (eval st (Inv (Dup w)) x)
 --eval st (Inv (Dup w)) (Ins x) = liftM Ins (eval st (Inv (Dup w)) x)
 -- 第一引数はDup (DWith v)
--- eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
+eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
 eval st (Inv (Dup w)) (a :& b) = eqWith w a b
 eval st (Inv (Dup w)) x = outdom st (Inv (Dup w)) x
 
@@ -281,14 +281,14 @@ deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
 --     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
 -- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
 
--- otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
+otWith :: DWith Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
 
--- -- とりあえず，各オペレーションでInsertが一つの時だけを考える
--- otWith (DStr "_dup") a b =
---     let (l :@ (r :@ _)) = a in
---     let cl = diff l; cr = diff r in
---     let otcl = map xToOt cl; otcr = map xToOt cr in
---     throwErr (EqFail (Str (show l ++ show otcl)) (Str (show r ++ show otcr)))
+-- とりあえず，各オペレーションでInsertが一つの時だけを考える
+otWith (DStr "_dup") a b =
+    let (l :@ (r :@ _)) = a in
+    let cl = diff l; cr = diff r in
+    -- let otcl = map xToOt cl; otcr = map xToOt cr in
+    throwErr (EqFail (Str (show l ++ show cl)) (Str (show r ++ show cr)))
 
 
 dupWith :: DWith Val-> Val -> M Val
