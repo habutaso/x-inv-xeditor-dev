@@ -1,4 +1,4 @@
-module ValtoOt (otToVal, valToOt, cmdToOt) where
+module ValtoOt (otToVal, valToOt, cmdToOt, otToCmd) where
 
 import Data.Char
 import Text.XML.Light.Types
@@ -24,7 +24,7 @@ valToOt v = Node (show v) []
 
 valLToOt Nl = []
 valLToOt Undef = []
-valLToOt (Del a :@ x) = valLToOt x
+valLToOt (Del a :@ x) = valToOt a : valLToOt x
 valLToOt (Ins a :@ x) = valToOt a : valLToOt x
 valLToOt (a :@ x) = valToOt a : valLToOt x
 
@@ -33,11 +33,10 @@ atom (Str s) = s
 atom (Mark x) = atom x
 atom Undef = "undefined"
 
-
 otToCmd :: TreeCommand -> [Int] -> [Command Val]
 otToCmd (OpenRoot idx tc) p =  otToCmd tc $ p ++ [idx]
 otToCmd (Atomic (TreeInsert idx ts)) p = map (\t -> Insert (p ++ [idx]) (otToVal t)) (reverse ts)
-otToCmd (Atomic (TreeRemove) idx ts) p = map (\t -> Delete (p ++ [idx])) ts
+otToCmd (Atomic (TreeRemove idx ts)) p = map (\t -> Delete (p ++ [idx]) (otToVal t)) (reverse ts)
 otToCmd (Atomic (Ot.EditLabel (UStr s))) p = [EditCommand.EditLabel p (Str s)]
 otToCmd (Atomic (Ot.EditLabel (UInt i))) p = [EditCommand.EditLabel p (Str (show i))]
 
@@ -50,8 +49,8 @@ cmdToOt (Insert (p:ps) (Nod (Str s) ts)) = OpenRoot p $ cmdToOt (Insert ps (Nod 
 cmdToOt (Insert (p:ps) (Str s)) = Atomic (TreeInsert p [Ot.Node s []])
 -- TODO: Ot.TreeRemove は Ot.Nodeが一致していたら削除
 -- というルールが一応あるが．それを無視してもよいのか．
-cmdToOt (Delete (p:[])) = Atomic (TreeRemove p [Ot.Node "_dummy" []])
-cmdToOt (Delete (p:ps)) = OpenRoot p (cmdToOt (Delete ps))
+cmdToOt (Delete (p:[]) (Nod (Str s) ts)) = Atomic (TreeRemove p [Ot.Node s (atValToTs ts)])
+cmdToOt (Delete (p:ps) (Nod (Str s) ts)) = OpenRoot p $ cmdToOt (Delete ps (Nod (Str s) ts))
 cmdToOt (EditCommand.EditLabel (p:[]) (Str s)) = Atomic (Ot.EditLabel (UStr s))
 cmdToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
     OpenRoot p (cmdToOt (EditCommand.EditLabel ps (Str s)))

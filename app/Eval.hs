@@ -163,7 +163,7 @@ eval st (Dup w) x =
 --eval st (Inv (Dup w)) (Del x) = liftM Del (eval st (Inv (Dup w)) x)
 --eval st (Inv (Dup w)) (Ins x) = liftM Ins (eval st (Inv (Dup w)) x)
 -- 第一引数はDup (DWith v)
-eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
+-- eval st (Inv (Dup (DStr "_dup"))) (a :& b) = otWith (DStr "_dup") a b
 eval st (Inv (Dup w)) (a :& b) = eqWith w a b
 eval st (Inv (Dup w)) x = outdom st (Inv (Dup w)) x
 
@@ -229,6 +229,9 @@ eval st (Inv (Define name f)) a =
 
 eval st (Inv f) a = eval st (invert f) a
 
+-- eval st ReslConf (s :& (l :@ r)) = throwErr (EqFail (Str "conf") ((Str (show l ++ "\n" ++ show r))))
+eval st ReslConf (s :& (l :@ r)) = rcWith s l r
+eval st ReslConf b = throwErr (EqFail (Str "fail pattern match conf") b)
 
 eval st f a = throwErr (OutDom f a) 
 
@@ -245,6 +248,22 @@ cross f g (a :& b) = f a :& g b
 
 
 
+rcWith :: Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
+-- rcWith s l (r :@ _) = 
+--     throwErr (EqFail 
+--       (Str ("\n" ++ show l ++ "\n" ++ show cl ++ "\n" ++ show otcl))
+--       (Str ("\n" ++ show r ++ "\n" ++ show cr ++ "\n" ++ show otcr ++ 
+--             "\n" ++ show ot ++ show cmd' ++ "\n\nsource\n" ++ (show s))))
+rcWith s l r
+    | cl == [] && cr == [] = return l
+    | cl == []             = return r
+    |             cr == [] = return l
+    | otherwise =
+      return $ applyCmds cmd' (l :@ (r :@ Nl))
+    where cl = diff l; cr = diff r
+          otcl = map cmdToOt cl; otcr = map cmdToOt cr
+          ot = tree_it (head otcl) (head otcr) True
+          cmd' = if ot == [] then cr else cr ++ otToCmd (head ot) []
 
 
 diff :: Val -> [Command Val]
@@ -254,12 +273,13 @@ diff (Mark v) = [EditCommand.EditLabel [] v]
 diff _ = []
 
 diffL n Nl = []
-diffL n (Del a :@ x) = Delete [n] : diffL n x
+diffL n (Del a :@ x) = Delete [n] a : diffL (n+1) x
 diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
+diffL n (Mark a :@ x) = EditCommand.EditLabel [] a : diffL (n+1) x
 diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
 
 deepen n (Insert p v) = Insert (n:p) v
-deepen n (Delete p) = Delete (n:p)
+deepen n (Delete p v) = Delete (n:p) v
 deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
 
 -- diffToOt (Nod (Mark v) x) = EditLabel [] v : diffToOt (Nod v x)

@@ -11,11 +11,13 @@ import Eval   -- for testing only
 
 
 
-
 testtree = "{'a', {'b', []}:{'a', []}:[]}"
-
-
-
+duped_tree1 = "<{'a',{'b',[]}:{'a',[]}:[]},\
+\{'_dup',{'a',{'b', []}:^({'c', 'd':'e':[]}:{'a',[]}:[])}:\
+        \{'a',^({'c',[]}:{'b',[]}:{'a',[]}:[])}:[]}>"
+duped_tree2 = "<{'a',{'b',[]}:{'a',[]}:[]},\
+\{'_dup',{'a',{'b', []}:^({'c', 'd':'e':[]}:{'a',[]}:[])}:\
+        \{'a',\\({'b',[]}:{'a',[]}:[])}:[]}>"
 
 gFun (f,g) = genDup <.> (Id :*: Inj (f,g))  --- try avoid this and use iFun
 
@@ -28,11 +30,9 @@ dupx = Define "dupx" (genDup <.> (Id :*: genDup <.> futatsu <.> mkRoot))
 futatsu = (Id :*: Dup DNil <.> Cons) <.> Cons 
 mkRoot = Dup (DStr "_dup") <.> Swap <.> Node
 
-inv_dupx = (Id :*: (rmRoot <.> hitotsu <.> resCnfl)) <.> update
+inv_dupx :: Inv Val
+inv_dupx = Define "inv_dupx" (Id :*: rmRoot) <.> ReslConf
 rmRoot = (Inv Node) <.> Swap <.> (Inv (Dup (DStr "_dup")))
-hitotsu = (Inv Cons) <.> (Id :*: (Inv Cons) <.> (Inv (Dup DNil)))
-resCnfl = (Inv genDup)
-update = (Inv genDup)
 
 f `seqx` g = Define (show f ++ ";" ++ show g) 
               (f <.> (Id :*: g) <.> Assocl <.> (Inv f' :*: Id))
@@ -255,3 +255,6 @@ wrap2vs f = (twoargvs, \[Val (Str v1), Val (Str v2)] -> f v1 v2)
 f = Ident "f" []
 g = Ident "g" []
 h = Ident "h" []
+
+fromRight ~(Right x) = x
+fromJust ~(Just x) = x

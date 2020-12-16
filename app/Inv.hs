@@ -26,6 +26,7 @@ data Inv v = Inv (Inv v)
          | Ident Name [Inv v]            -- identifiers!
          | Val v                         -- as arguments to constructs
                                          -- should be in Env. only
+         | ReslConf
 
 
 data DWith v = DP [DP]
@@ -76,6 +77,7 @@ showsX _ Node = ("node"++)
 showsX _ Inl = ("inl"++)
 showsX _ Inr = ("inr"++)
 showsX _ (Val v) = shows v
+showsX _ ReslConf = ("confresol"++)
 
 -- showsX _ Del = ("del"++)
 -- showsX _ Snd = ("snd"++)

@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-module EditorInf (State, XMLState, 
+module EditorInf (State, XMLState,
                   editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
                   src, xsrc, transform, tar, xtar) where
 
@@ -64,6 +64,11 @@ editorTransUpdate p (xsrc, f, xtar) f' =
 editorPut (src,f,tar) cmd =
   do let tar' = applyCmd cmd tar
      src' <- eval xprelude (Inv f) (src :& tar')
+     return src'
+
+editorOtPut (src,f,tar) cmds =
+  do let tar' = applyCmds cmds tar
+     src' <- eval xprelude inv_dupx (src :& tar')
      return src'
 
 editorMPut (src,f,tar) cmds =
