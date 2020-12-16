@@ -34,8 +34,18 @@ atom (Mark x) = atom x
 atom Undef = "undefined"
 
 
+otToCmd :: TreeCommand -> [Int] -> [Command Val]
+otToCmd (OpenRoot idx tc) p =  otToCmd tc $ p ++ [idx]
+otToCmd (Atomic (TreeInsert idx ts)) p = map (\t -> Insert (p ++ [idx]) (otToVal t)) (reverse ts)
+otToCmd (Atomic (TreeRemove) idx ts) p = map (\t -> Delete (p ++ [idx])) ts
+otToCmd (Atomic (Ot.EditLabel (UStr s))) p = [EditCommand.EditLabel p (Str s)]
+otToCmd (Atomic (Ot.EditLabel (UInt i))) p = [EditCommand.EditLabel p (Str (show i))]
+
+atValToTs Nl = []
+atValToTs (t :@ ts) = (valToOt t) : (atValToTs ts)
+
 cmdToOt :: Command Val -> TreeCommand
-cmdToOt (Insert (p:[]) (Nod (Str s) ts)) = Atomic (TreeInsert p [Ot.Node s [valToOt ts]])
+cmdToOt (Insert (p:[]) (Nod (Str s) ts)) = Atomic (TreeInsert p [Ot.Node s (atValToTs ts)])
 cmdToOt (Insert (p:ps) (Nod (Str s) ts)) = OpenRoot p $ cmdToOt (Insert ps (Nod (Str s) ts))
 cmdToOt (Insert (p:ps) (Str s)) = Atomic (TreeInsert p [Ot.Node s []])
 -- TODO: Ot.TreeRemove は Ot.Nodeが一致していたら削除
