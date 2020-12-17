@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Eval (eval, invert, get, put, M) where
+module Eval (eval, invert, get, put, diff, M) where
 
 import Data.List
 import qualified Data.Tree

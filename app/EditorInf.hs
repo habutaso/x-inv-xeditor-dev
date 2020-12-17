@@ -79,7 +79,7 @@ editorMPut (src,f,tar) cmds =
 editorPutXML :: XMLState -> [Command Val] -> Either (Err (Inv Val) Val) XMLState
 editorPutXML (xsrc,f,xtar) cmds =
   do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
-     src' <- editorMPut (src,f,tar) cmds
+     src' <- editorOtPut (src,f,tar) cmds
      let (xsrc', xtar') = (valToXML src', valToXML tar)
      return (xsrc',f,xtar')
 
@@ -127,25 +127,8 @@ doCommandXML f xcmd xview =
      return (map xCmd diff)
 
 
-
-diff :: Val -> [Command Val]
-diff (Nod (Mark v) x) = EditCommand.EditLabel [] v : diff (Nod v x)
-diff (Nod _ x) = diffL 0 x
-diff (Mark v) = [EditCommand.EditLabel [] v]
-diff _ = []
-
-diffL n Nl = []
-diffL n (Del a :@ x) = Delete [n] : diffL n x
-diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
-diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
-
-deepen n (Insert p v) = Insert (n:p) v
-deepen n (Delete p) = Delete (n:p)
-deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
-
-
 mapCmd f (Insert p v) = Insert p (f v)
-mapCmd f (Delete p) = Delete p
+mapCmd f (Delete p v) = Delete p (f v)
 mapCmd f (EditCommand.EditLabel p v) = EditCommand.EditLabel p (f v)
 
 vCmd = mapCmd xmlToVal
