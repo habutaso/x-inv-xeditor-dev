@@ -231,6 +231,7 @@ eval st (Inv f) a = eval st (invert f) a
 
 -- eval st ReslConf (s :& (l :@ r)) = throwErr (EqFail (Str "conf") ((Str (show l ++ "\n" ++ show r))))
 eval st ReslConf (s :& (l :@ r)) = rcWith s l r
+eval st ReslConf (s :& (l :& r)) = rcWith s l r
 eval st ReslConf b = throwErr (EqFail (Str "fail pattern match conf") b)
 
 eval st f a = throwErr (OutDom f a) 

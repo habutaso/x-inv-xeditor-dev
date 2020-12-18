@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 module EditorInf (State, XMLState,
+                  editorGetXML, 
                   editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
-                  src, xsrc, transform, tar, xtar) where
+                  editorMPut, editorPutDup,
+                  extract, transform) where
 
 import Val
 import Inv
@@ -71,17 +73,26 @@ editorOtPut (src,f,tar) cmds =
      src' <- eval xprelude inv_dupx (src :& tar')
      return src'
 
-editorMPut (src,f,tar) cmds =
-  do let tar' = applyCmds cmds tar
-     src' <- eval xprelude (Inv f) (src :& tar')
-     return src'
-
 editorPutXML :: XMLState -> [Command Val] -> Either (Err (Inv Val) Val) XMLState
 editorPutXML (xsrc,f,xtar) cmds =
   do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
      src' <- editorOtPut (src,f,tar) cmds
      let (xsrc', xtar') = (valToXML src', valToXML tar)
      return (xsrc',f,xtar')
+
+includeDupNode :: [Val] -> Val
+includeDupNode (v:[]) = v
+includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :& includeDupNode vs)
+
+editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
+editorMPut xstmts = do
+    let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
+    let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
+    let ((src,f,tar),_) = head stmts
+    src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
+    let (xsrc', xtar') = (valToXML src', valToXML tar)
+    return (xsrc', f, xtar')
+    
 
 -- extend OT conflict resolution
 editorPutDup p (xsrc,f,xtar) cmd =
