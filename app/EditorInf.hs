@@ -2,7 +2,7 @@
 module EditorInf (State, XMLState,
                   editorGetXML, 
                   editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
-                  editorMPut, editorPutDup,
+                  editorPut, editorPutXML, editorMPut, editorPutDup,
                   extract, transform) where
 
 import Val
@@ -73,16 +73,16 @@ editorOtPut (src,f,tar) cmds =
      src' <- eval xprelude inv_dupx (src :& tar')
      return src'
 
-editorPutXML :: XMLState -> [Command Val] -> Either (Err (Inv Val) Val) XMLState
-editorPutXML (xsrc,f,xtar) cmds =
+editorPutXML :: XMLState -> Command Val -> Either (Err (Inv Val) Val) XMLState
+editorPutXML (xsrc,f,xtar) cmd =
   do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
-     src' <- editorOtPut (src,f,tar) cmds
+     src' <- editorPut (src,f,tar) cmd
      let (xsrc', xtar') = (valToXML src', valToXML tar)
      return (xsrc',f,xtar')
 
 includeDupNode :: [Val] -> Val
-includeDupNode (v:[]) = v
-includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :& includeDupNode vs)
+includeDupNode (v:[]) = v :@ Nl
+includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :@ includeDupNode vs)
 
 editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
 editorMPut xstmts = do
@@ -90,10 +90,10 @@ editorMPut xstmts = do
     let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
     let ((src,f,tar),_) = head stmts
     src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
-    let (xsrc', xtar') = (valToXML src', valToXML tar)
-    return (xsrc', f, xtar')
+    throwErr (EqFail (Str (show src')) (Str ""))
+    -- let (xsrc', xtar') = (valToXML src', valToXML tar)
+    -- return (xsrc', f, xtar')
     
-
 -- extend OT conflict resolution
 editorPutDup p (xsrc,f,xtar) cmd =
   editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar) cmd
@@ -102,23 +102,23 @@ src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
 
 -- :break Eval 294
 -- :trace extract (editorPutDup [0,1,0] (s,ff,v))
-(s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
-
-cmds :: [Command Val]
-cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
-
-ottest cs = extract $ editorPutDup [0,1] (s,transform,v) cs
-
-test = do
-    let (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
-    let cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
-    let (s2,f2,v2) = extract $ editorPutDup [0,1] (s,transform,v) cmds
-    putStrLn "source"
-    putStrLn $ ppContent s
-    putStrLn "\nview"
-    putStrLn $ ppContent v
-    putStrLn "\nupdated source"
-    putStrLn $ ppContent s2
+-- (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
+--
+-- cmds :: [Command Val]
+-- cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
+--
+-- ottest cs = extract $ editorPutDup [0,1] (s,transform,v) cs
+--
+-- test = do
+--     let (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
+--     let cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
+--     let (s2,f2,v2) = extract $ editorPutDup [0,1] (s,transform,v) cmds
+--     putStrLn "source"
+--     putStrLn $ ppContent s
+--     putStrLn "\nview"
+--     putStrLn $ ppContent v
+--     putStrLn "\nupdated source"
+--     putStrLn $ ppContent s2
 
 doCommand :: Inv Val -> Command Val -> Val -> 
              Either (Err (Inv Val) Val) [Command Val]

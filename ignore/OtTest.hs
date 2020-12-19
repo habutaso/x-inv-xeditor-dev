@@ -22,5 +22,3 @@ test op1 op2 = do
     putStrLn $ "\ntransformed:"
     putStrLn $ "s12: " ++ (show $ trans op1 op2 True)
     putStrLn $ "s21: " ++ (show $ trans op2 op1 False)
-
-foldtest = foldr (\t s -> tree_interp s t) tree [op1, op2] 

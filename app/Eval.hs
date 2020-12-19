@@ -252,15 +252,15 @@ cross f g (a :& b) = f a :& g b
 rcWith :: Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
 -- rcWith s l (r :@ _) = 
 --     throwErr (EqFail 
---       (Str ("\n" ++ show l ++ "\n" ++ show cl ++ "\n" ++ show otcl))
---       (Str ("\n" ++ show r ++ "\n" ++ show cr ++ "\n" ++ show otcr ++ 
---             "\n" ++ show ot ++ show cmd' ++ "\n\nsource\n" ++ (show s))))
+--       (Str ("\nl: " ++ show l ++ "\ncl: " ++ show cl ++ "\notcl: " ++ show otcl))
+--       (Str ("\nr: " ++ show r ++ "\ncr: " ++ show cr ++ "\notcr: " ++ show otcr ++ 
+--             "\not: " ++ show ot ++"\ncmd': " ++ show cmd' ++ "\nsource: " ++ show s ++
+--             "\nresult: " ++ show result)))
 rcWith s l r
     | cl == [] && cr == [] = return l
     | cl == []             = return r
     |             cr == [] = return l
-    | otherwise =
-      return $ applyCmds cmd' (l :@ (r :@ Nl))
+    | otherwise = return $ applyCmds cmd' s
     where cl = diff l; cr = diff r
           otcl = map cmdToOt cl; otcr = map cmdToOt cr
           ot = tree_it (head otcl) (head otcr) True
