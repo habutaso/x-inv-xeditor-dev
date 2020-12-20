@@ -28,11 +28,9 @@ dupx = Define "dupx" (genDup <.> (Id :*: genDup <.> futatsu <.> mkRoot))
 futatsu = (Id :*: Dup DNil <.> Cons) <.> Cons 
 mkRoot = Dup (DStr "_dup") <.> Swap <.> Node
 
-inv_dupx = (Id :*: (rmRoot <.> hitotsu <.> resCnfl)) <.> update
+inv_dupx :: Inv Val
+inv_dupx = Define "inv_dupx" (Id :*: rmRoot) <.> ResC
 rmRoot = (Inv Node) <.> Swap <.> (Inv (Dup (DStr "_dup")))
-hitotsu = (Inv Cons) <.> (Id :*: (Inv Cons) <.> (Inv (Dup DNil)))
-resCnfl = (Inv genDup)
-update = (Inv genDup)
 
 f `seqx` g = Define (show f ++ ";" ++ show g) 
               (f <.> (Id :*: g) <.> Assocl <.> (Inv f' :*: Id))

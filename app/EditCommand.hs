@@ -1,19 +1,22 @@
-module EditCommand (Command(..), Path, applyCmd) where
+module EditCommand (Command(..), Path, applyCmd, applyCmds) where
 
 import Val
 
 
 
 data Command a = Insert Path a
-               | Delete Path
+               | Delete Path a
                | EditLabel Path a
-  deriving (Show, Read)
+  deriving (Eq, Show, Read)
 
 type Path = [Int]
 
+applyCmds [] tar = tar
+applyCmds (c:cs) tar = applyCmds cs $ applyCmd c tar
+
 applyCmd :: Command Val -> Val -> Val
 applyCmd (Insert p v) = insert v p
-applyCmd (Delete p) = delete p 
+applyCmd (Delete p v) = delete p 
 applyCmd (EditLabel p v) = editLabel v p
 
 insert :: Val -> Path -> Val -> Val

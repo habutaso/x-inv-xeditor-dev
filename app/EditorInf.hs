@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 module EditorInf (State, XMLState, 
+                  extract, editorGetXML,
                   editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
-                  src, xsrc, transform, tar, xtar) where
+                  editorMPut, transform) where
 
 import Val
 import Inv
@@ -13,7 +14,7 @@ import EditCommand
 import X
 import Marshall
 import Ot
-import ValtoOt
+import ValToOt
 
 import Data.Char
 import Text.XML.Light.Types
@@ -60,43 +61,28 @@ editorTransUpdate p (xsrc, f, xtar) f' =
   editorGetXML (xsrc, f `seqx` applyPath p f', xtar)
 
 -- for testing only
--- editorPut :: State -> Command Val -> Either (Err (Inv Val) Val) Val 
 editorPut (src,f,tar) cmd =
   do let tar' = applyCmd cmd tar
      src' <- eval xprelude (Inv f) (src :& tar')
      return src'
 
-editorPut2 (src,f,tar) = do
-    src' <- eval xprelude (Inv f) (src :& tar)
-    return src'
+includeDupNode :: [Val] -> Val
+includeDupNode (v:[]) = v :@ Nl
+includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :@ includeDupNode vs)
 
-editorPutXML :: XMLState -> Either (Err (Inv Val) Val) XMLState
-editorPutXML (xsrc,f,xtar) =
-  do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
-     src' <- editorPut2 (src,f,tar)
-     let (xsrc', xtar') = (valToXML src', valToXML tar)
-     return (xsrc',f,xtar')
--- xToOt :: Command Val -> TreeCommand
--- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Node s []))
--- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Node s ts))
--- xToOt (Insert (p:ps) (Nod s ts)) = OpenRoot p (xToOt (Insert ps (Nod s ts)))
--- TODO: Ot.TreeRemove は Nodeが一致していたら削除
--- というルールが一応あるが．それを無視してもよいのか．
--- xToOt (Delete p) = Atomic ()
--- xToOt (Delete (p:ps)) = OpenRoot p (xToOt (Delete ps ))
--- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
--- xToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
---     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
+editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
+editorMPut xstmts = do
+    let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
+    let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
+    let ((src,f,tar),_) = head stmts
+    src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
+    -- throwErr (EqFail (Str (show src')) (Str ""))
+    let (xsrc', xtar') = (valToXML src', valToXML tar)
+    return (xsrc', f, xtar')
 
--- applyOt :: [Command Val] -> Command Val
--- applyOt cmds = Nl
-
--- extend OT conflict resolution
-editorPutDup p (xsrc,f,xtar) =
-  editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar)
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
-src'' = extract (editorPut (src,transform,tar) (Delete [0,1]))
+src'' = extract (editorPut (src,transform,tar) (Delete [0,1] (read "'iiii'")))
 
 
 
@@ -126,17 +112,17 @@ diff (Mark v) = [EditCommand.EditLabel [] v]
 diff _ = []
 
 diffL n Nl = []
-diffL n (Del a :@ x) = Delete [n] : diffL n x
+diffL n (Del a :@ x) = Delete [n] a : diffL n x
 diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
 diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
 
 deepen n (Insert p v) = Insert (n:p) v
-deepen n (Delete p) = Delete (n:p)
+deepen n (Delete p v) = Delete (n:p) v
 deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
 
 
 mapCmd f (Insert p v) = Insert p (f v)
-mapCmd f (Delete p) = Delete p
+mapCmd f (Delete p v) = Delete p (f v)
 mapCmd f (EditCommand.EditLabel p v) = EditCommand.EditLabel p (f v)
 
 vCmd = mapCmd xmlToVal
@@ -195,7 +181,7 @@ test = do
     let t = Nod (Str "newnode") ((Str "newvalue") :@ Nl)
     let label = (Str "newlabel")
     let icmd = Insert [0,0,1] t
-    let dcmd = Delete [0,0,1]
+    let dcmd = Delete [0,0,1] t
     -- let ecmd = EditCommand.EditLabel [0,1] label
     let view' = (applyCmd dcmd) view
     let src' = extract $ put [] transform view'
@@ -230,3 +216,6 @@ lsTree s = Dup (DStr s) <.> Swap <.> Inv.Node
 
 extract (Right a) = a
 extract (Left err) = error (show err)
+
+fromRight ~(Right x) = x
+fromLeft ~(Left x) = x

@@ -10,18 +10,18 @@ data Tree t =
 data LabelCommand = 
       UStr String
     | UInt Int
-    deriving (Show)
+    deriving (Eq, Show)
 
 data ListCommand =
       TreeInsert Int [Tree String]
     | TreeRemove Int [Tree String]
     | EditLabel LabelCommand
-    deriving (Show)
+    deriving (Eq, Show)
 
 data TreeCommand =
       Atomic ListCommand
     | OpenRoot Int TreeCommand
-    deriving (Show)
+    deriving (Eq, Show)
 
 tr_ins :: Int -> Int -> Int -> Int
 tr_ins len n1 n2 =

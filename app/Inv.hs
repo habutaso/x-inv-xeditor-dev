@@ -26,6 +26,7 @@ data Inv v = Inv (Inv v)
          | Ident Name [Inv v]            -- identifiers!
          | Val v                         -- as arguments to constructs
                                          -- should be in Env. only
+         | ResC
 
 
 data DWith v = DP [DP]

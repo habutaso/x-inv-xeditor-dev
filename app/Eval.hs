@@ -6,7 +6,10 @@ import Control.Monad.Error
 
 import Val
 import Inv
+import Ot
 import Error
+import EditCommand
+import ValToOt
 
 
 type M a = Either (Err (Inv a) a) a
@@ -91,16 +94,16 @@ eval st (Inv Inr) (R a) = return a
 eval st (Inv Inr) Undef = return Undef     -- ok?
 eval st (Inv Inr) x = outdom st (Inv Inr) x
 
---eval st Node (Del x) = liftM Del (eval st Node x)
---eval st Node (Ins x) = liftM Ins (eval st Node x)
-eval st Node (a :& x) = return (Nod a x)
-eval st Node x = outdom st Node x
+--eval st Inv.Node (Del x) = liftM Del (eval st Inv.Node x)
+--eval st Inv.Node (Ins x) = liftM Ins (eval st Inv.Node x)
+eval st Inv.Node (a :& x) = return (Nod a x)
+eval st Inv.Node x = outdom st Inv.Node x
 
-eval st (Inv Node) (Nod a ts) = return (a :& ts)
---eval st (Inv Node) (Del x) = liftM Del (eval st (Inv Node) x)
---eval st (Inv Node) (Ins x) = liftM Ins (eval st (Inv Node) x)
-eval st (Inv Node) Undef = return (Undef :& Undef)
-eval st (Inv Node) x =  outdom st (Inv Node) x
+eval st (Inv Inv.Node) (Nod a ts) = return (a :& ts)
+--eval st (Inv Inv.Node) (Del x) = liftM Del (eval st (Inv Inv.Node) x)
+--eval st (Inv Inv.Node) (Ins x) = liftM Ins (eval st (Inv Inv.Node) x)
+eval st (Inv Inv.Node) Undef = return (Undef :& Undef)
+eval st (Inv Inv.Node) x =  outdom st (Inv Inv.Node) x
 
 eval st Swap (a :& b) = return (b :& a)
 --eval st Swap (Del x) = liftM Del (eval st Swap x)
@@ -224,6 +227,8 @@ eval st (Inv (Define name f)) a =
 
 eval st (Inv f) a = eval st (invert f) a
 
+eval st ResC (s :& (l :@ r)) = rcWith s l r
+eval st ResC b = throwErr (OutDom ResC b)
 
 eval st f a = throwErr (OutDom f a) 
 
@@ -240,8 +245,39 @@ cross f g (a :& b) = f a :& g b
 
 
 
+rcWith :: Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
+rcWith s l (r :@ _) = 
+    throwErr (EqFail 
+      (Str ("\nl: " ++ show l ++ "\ncl: " ++ show cl ++ "\notcl: " ++ show otcl))
+      (Str ("\nr: " ++ show r ++ "\ncr: " ++ show cr ++ "\notcr: " ++ show otcr ++ 
+            "\not: " ++ show ot ++"\ncmd': " ++ show cmd' ++ "\nsource: " ++ show s ++
+            "\nresult: " ++ show result)))
+-- rcWith s l r
+--     | cl == [] && cr == [] = return l
+--     | cl == []             = return r
+--     |             cr == [] = return l
+--     | otherwise = return $ applyCmds cmd' s
+    where cl = diff l; cr = diff r
+          otcl = map cmdToOt cl; otcr = map cmdToOt cr
+          ot = tree_it (head otcl) (head otcr) True
+          cmd' = if ot == [] then cr else cr ++ otToCmd (head ot) []
+          result = applyCmds cmd' s
 
+diff :: Val -> [Command Val]
+diff (Nod (Mark v) x) = EditCommand.EditLabel [] v : diff (Nod v x)
+diff (Nod _ x) = diffL 0 x
+diff (Mark v) = [EditCommand.EditLabel [] v]
+diff _ = []
 
+diffL n Nl = []
+diffL n (Del a :@ x) = Delete [n] a : diffL (n+1) x
+diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
+diffL n (Mark a :@ x) = EditCommand.EditLabel [] a : diffL (n+1) x
+diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
+
+deepen n (Insert p v) = Insert (n:p) v
+deepen n (Delete p v) = Delete (n:p) v
+deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
 
 
 dupWith :: DWith Val-> Val -> M Val
@@ -272,23 +308,15 @@ eqWith DZero x (Del (Num 0)) = return x  -- ok?
 eqWith DZero x (Ins (Num 0)) = return x  -- ok?
 eqWith DZero x Undef = return x -- ok?
 eqWith DZero x y = throwErr (EqFail x (Num 0))
--- for test _dup
 eqWith (DStr s) x Undef = return x
-eqWith (DStr "_dup") x (Ins (Str s')) = liftM Ins (eqWith (DStr "_dupppp") x (Str s'))
 eqWith (DStr s) x (Ins (Str s')) = liftM Ins (eqWith (DStr s) x (Str s'))
--- eqWith (DStr a) (Ins (Str a')) (Ins (Str a'')) 
-eqWith (DStr "_dup") x (Del (Str s')) = liftM Del (eqWith (DStr "_dupppp") x (Str s'))
 eqWith (DStr s) x (Del (Str s')) = liftM Del (eqWith (DStr s) x (Str s'))
-eqWith (DStr s) x (Del (Str "_dup"))
-     | s == "_dup" = return x
-     | otherwise = throwErr (EqFail (Str s) (Str "_dup"))
 eqWith (DStr s) x (Str s') 
      | s == s' = return x
      | otherwise = throwErr (EqFail (Str s) (Str s'))
 eqWith (DF f) x _ = return x   -- is this right ?
 eqWith (DP dp) x a =
    do a' <- dupWith (DP dp) x
-      -- ラベルの競合解決はここ(木もここ？？)
       a'' <- eq a a'
       return (invite dp x a'')
 eqWith p x y = error ("non-exhaustive pattern in eqWith: " ++ show p ++ "," ++ show x ++ "," ++ show y)
