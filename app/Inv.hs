@@ -97,6 +97,7 @@ showsX n (f :|: g) = bracket 2 n (showsX 2 f . (" U "++) . showsX 2 g)
 
 showsX n (Inj _) = ("Inj"++)
 showsX n (Prim _) = ("Prim"++)
+showsX n ResC = ("ResC"++)
 
 showsX n (Inv f) = bracket 6 n (showsX 6 f . ("^o"++))
 

@@ -1,6 +1,8 @@
 -- module Main where
 
 import Data.Char
+import Data.List
+import Data.Tuple
 import Text.XML.Light.Types
 import Text.XML.Light.Output
 
@@ -14,10 +16,10 @@ import EditorInf
 
 
 src :: Val
-src = read "{'Staff', {'Member', \
-\{'name', 'Takeichi':[]}:\
-\{'email', 'takeichi@ipl':[]}:\
-\{'phone', '03-12345678':[]}:[]}:[]}"
+src = read "{'a', {'b', \
+\{'c', 'd':[]}:\
+\{'e', 'f':[]}:\
+\{'g', 'h':[]}:[]}:[]}"
 
 tar :: Val
 tar = read ""
@@ -55,16 +57,18 @@ xmlStateToStr (s,f,v) =
 
 clnt1 = extract $ editorGetXML (xsrc, transform, xtar)
 clnt2 = extract $ editorGetXML (xsrc, transform, xtar) 
-cmd1 = (Insert [0] (read "{'a', 'b':[]}"))
-cmd2 = (Delete [0,2] (read "{'c', 'd':[]}"))
-upd = [(clnt1, cmd1), (clnt2, cmd2)]
-server = extract $ editorMPut upd
+cmd1, cmd2, cmd3, cmd4 :: Command Val
+cmd1 = (Insert [0,1] (read "{'x', 'y':[]}"))
+cmd2 = (Insert [0,1] (read "{'xx', 'yy':[]}"))
+cmd3 = (Delete [0,2] (read "'dummy'"))
+cmd4 = (EditCommand.EditLabel [0,0,0] (read "'abc'"))
+upd = [(clnt1, cmd1), (clnt2, cmd4)]
+updated = extract $ editorMPut upd
 
 mputtest = do
-    putStrLn $ "clnt1:\n" ++ xmlStateToStr clnt1 ++ "\n"
-    putStrLn $ "clnt2:\n" ++ xmlStateToStr clnt2 ++ "\n"
+    putStrLn $ "source:\n" ++ ppContent xsrc ++ "\n"
+    putStrLn $ "clnt1:\n" ++ (show $ snd $ head upd) ++ "\n"
+    putStrLn $ "clnt2:\n" ++ (show $ snd $ last upd) ++ "\n"
 
-    putStrLn $ "server:\n" ++ xmlStateToStr server ++ "\n"
+    putStrLn $ "updated:\n" ++ xmlStateToStr updated ++ "\n"
 
-    
-    

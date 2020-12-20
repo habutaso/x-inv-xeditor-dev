@@ -70,13 +70,13 @@ includeDupNode :: [Val] -> Val
 includeDupNode (v:[]) = v :@ Nl
 includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :@ includeDupNode vs)
 
-editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
+-- editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
 editorMPut xstmts = do
     let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
     let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
     let ((src,f,tar),_) = head stmts
     src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
-    -- throwErr (EqFail (Str (show src')) (Str ""))
+    throwErr (Modified (show src'))
     let (xsrc', xtar') = (valToXML src', valToXML tar)
     return (xsrc', f, xtar')
 

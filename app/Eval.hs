@@ -11,6 +11,8 @@ import Error
 import EditCommand
 import ValToOt
 
+import Marshall
+import Text.XML.Light.Output
 
 type M a = Either (Err (Inv a) a) a
 
@@ -228,7 +230,6 @@ eval st (Inv (Define name f)) a =
 eval st (Inv f) a = eval st (invert f) a
 
 eval st ResC (s :& (l :@ r)) = rcWith s l r
-eval st ResC b = throwErr (OutDom ResC b)
 
 eval st f a = throwErr (OutDom f a) 
 
@@ -246,17 +247,17 @@ cross f g (a :& b) = f a :& g b
 
 
 rcWith :: Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
-rcWith s l (r :@ _) = 
-    throwErr (EqFail 
-      (Str ("\nl: " ++ show l ++ "\ncl: " ++ show cl ++ "\notcl: " ++ show otcl))
-      (Str ("\nr: " ++ show r ++ "\ncr: " ++ show cr ++ "\notcr: " ++ show otcr ++ 
-            "\not: " ++ show ot ++"\ncmd': " ++ show cmd' ++ "\nsource: " ++ show s ++
-            "\nresult: " ++ show result)))
--- rcWith s l r
---     | cl == [] && cr == [] = return l
---     | cl == []             = return r
---     |             cr == [] = return l
---     | otherwise = return $ applyCmds cmd' s
+-- rcWith s l (r :@ _) = 
+--     throwErr (EqFail 
+--       (Str ("\nl: " ++ show l ++ "\ncl: " ++ show cl ++ "\notcl: " ++ show otcl))
+--       (Str ("\nr: " ++ show r ++ "\ncr: " ++ show cr ++ "\notcr: " ++ show otcr ++ 
+--             "\not: " ++ show ot ++"\ncmd': " ++ show cmd' ++ "\nsource: " ++ show s ++
+--             "\nresult: " ++ show (ppContent $ valToXML result))))
+rcWith s l r
+    | cl == [] && cr == [] = return l
+    | cl == []             = return r
+    |             cr == [] = return l
+    | otherwise = return result
     where cl = diff l; cr = diff r
           otcl = map cmdToOt cl; otcr = map cmdToOt cr
           ot = tree_it (head otcl) (head otcr) True
