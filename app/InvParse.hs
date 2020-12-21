@@ -78,6 +78,7 @@ term' = parensL expr
           <|> rev "leq" (Cmpr Leq)
           <|> rev "geq" (Cmpr Geq)
           <|> rev "gt" (Cmpr Gt)
+          <|> rev "resC" ResC
           <|> pDup
           <|> pFix
           <|> pIdentifier

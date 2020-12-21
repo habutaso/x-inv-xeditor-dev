@@ -31,7 +31,7 @@ futatsu = (Id :*: Dup DNil <.> Cons) <.> Cons
 mkRoot = Dup (DStr "_dup") <.> Swap <.> Node
 
 inv_dupx :: Inv Val
-inv_dupx = Define "inv_dupx" (Id :*: rmRoot) <.> ReslConf
+inv_dupx = Define "inv_dupx" (Id :*: rmRoot) <.> ResC
 rmRoot = (Inv Node) <.> Swap <.> (Inv (Dup (DStr "_dup")))
 
 f `seqx` g = Define (show f ++ ";" ++ show g) 

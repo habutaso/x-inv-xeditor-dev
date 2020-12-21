@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9a73a010d6aece8947cd56e2b53f7fac285ea49f87fb76852a0595370890cd37
+-- hash: 0fac7b18a517e79d9bcef708744e0e7b8b22ec7bb207da0791f58e8d04485ab9
 
 name:           xlang
 version:        0.1.0.0
@@ -61,7 +61,7 @@ executable xlang-exe
       Marshall
       Ot
       Val
-      ValtoOt
+      ValToOt
       View
       X
       Paths_xlang

@@ -1,9 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
-module EditorInf (State, XMLState,
-                  editorGetXML, 
+module EditorInf (State, XMLState, 
+                  extract, editorGetXML,
                   editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
-                  editorPut, editorPutXML, editorMPut, editorPutDup,
-                  extract, transform) where
+                  editorMPut, transform) where
 
 import Val
 import Inv
@@ -15,7 +14,7 @@ import EditCommand
 import X
 import Marshall
 import Ot
-import ValtoOt
+import ValToOt
 
 import Data.Char
 import Text.XML.Light.Types
@@ -68,57 +67,24 @@ editorPut (src,f,tar) cmd =
      src' <- eval xprelude (Inv f) (src :& tar')
      return src'
 
-editorOtPut (src,f,tar) cmds =
-  do let tar' = applyCmds cmds tar
-     src' <- eval xprelude inv_dupx (src :& tar')
-     return src'
-
-editorPutXML :: XMLState -> Command Val -> Either (Err (Inv Val) Val) XMLState
-editorPutXML (xsrc,f,xtar) cmd =
-  do let (src,tar) = (xmlToVal xsrc, xmlToVal xtar)
-     src' <- editorPut (src,f,tar) cmd
-     let (xsrc', xtar') = (valToXML src', valToXML tar)
-     return (xsrc',f,xtar')
-
 includeDupNode :: [Val] -> Val
 includeDupNode (v:[]) = v :@ Nl
 includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :@ includeDupNode vs)
 
-editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
+-- editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
 editorMPut xstmts = do
     let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
     let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
     let ((src,f,tar),_) = head stmts
     src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
-    throwErr (EqFail (Str (show src')) (Str ""))
-    -- let (xsrc', xtar') = (valToXML src', valToXML tar)
-    -- return (xsrc', f, xtar')
-    
--- extend OT conflict resolution
-editorPutDup p (xsrc,f,xtar) cmd =
-  editorPutXML (xsrc, f `seqx` applyPath p dupx, xtar) cmd
+    -- throwErr (Modified (show src'))
+    let (xsrc', xtar') = (valToXML src', valToXML tar)
+    return (xsrc', f, xtar')
+
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
+src'' = extract (editorPut (src,transform,tar) (Delete [0,1] (read "'iiii'")))
 
--- :break Eval 294
--- :trace extract (editorPutDup [0,1,0] (s,ff,v))
--- (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
---
--- cmds :: [Command Val]
--- cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
---
--- ottest cs = extract $ editorPutDup [0,1] (s,transform,v) cs
---
--- test = do
---     let (s,f,v) = extract $ editorDup [0,1] (xsrc,transform,xtar)
---     let cmds = [(Insert [0,1,0,0] (read "'a'")), (Insert [0,1,1,0] (read "'b'"))]
---     let (s2,f2,v2) = extract $ editorPutDup [0,1] (s,transform,v) cmds
---     putStrLn "source"
---     putStrLn $ ppContent s
---     putStrLn "\nview"
---     putStrLn $ ppContent v
---     putStrLn "\nupdated source"
---     putStrLn $ ppContent s2
 
 doCommand :: Inv Val -> Command Val -> Val -> 
              Either (Err (Inv Val) Val) [Command Val]
@@ -138,6 +104,23 @@ doCommandXML f xcmd xview =
      return (map xCmd diff)
 
 
+
+diff :: Val -> [Command Val]
+diff (Nod (Mark v) x) = EditCommand.EditLabel [] v : diff (Nod v x)
+diff (Nod _ x) = diffL 0 x
+diff (Mark v) = [EditCommand.EditLabel [] v]
+diff _ = []
+
+diffL n Nl = []
+diffL n (Del a :@ x) = Delete [n] a : diffL n x
+diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
+diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
+
+deepen n (Insert p v) = Insert (n:p) v
+deepen n (Delete p v) = Delete (n:p) v
+deepen n (EditCommand.EditLabel p v) = EditCommand.EditLabel (n:p) v
+
+
 mapCmd f (Insert p v) = Insert p (f v)
 mapCmd f (Delete p v) = Delete p (f v)
 mapCmd f (EditCommand.EditLabel p v) = EditCommand.EditLabel p (f v)
@@ -152,11 +135,13 @@ toc = dupx `seqx` (mapx headx `prod` idx)
 transform = idx -- EditorInf.toc
 
 src, tar :: Val
--- src = read "{'Staff', {'Member', 'Takeichi':'takeichi@ipl':'03-12345678':[]}:[]}"
-src = read "{'Staff', {'Member', \
-\{'name', 'Takeichi':[]}:\
+src2 :: Val
+src2 = read "{'Staff', {'Member', \
+\{'_dup', 'Takeichi':[]}:\
 \{'email', 'takeichi@ipl':[]}:\
 \{'phone', '03-12345678':[]}:[]}:[]}"
+
+src = src2
 
 (_:& tar) = extract (get [] transform src)
 
@@ -217,17 +202,5 @@ lsTree s = Dup (DStr s) <.> Swap <.> Inv.Node
 extract (Right a) = a
 extract (Left err) = error (show err)
 
--- xToOt :: Command Val -> TreeCommand
--- xToOt (Insert p (Str s)) = Atomic (TreeInsert p (Node s []))
--- xToOt (Insert p (Nod s ts)) = Atomic (TreeInsert p (Node s ts))
--- xToOt (Insert (p:ps) (Nod s ts)) = OpenRoot p (xToOt (Insert ps (Nod s ts)))
--- TODO: Ot.TreeRemove は Nodeが一致していたら削除
--- というルールが一応あるが．それを無視してもよいのか．
--- xToOt (Delete p) = Atomic ()
--- xToOt (Delete (p:ps)) = OpenRoot p (xToOt (Delete ps ))
--- xToOt (EditCommand.EditLabel p (Str s)) = Atomic (Ot.EditLabel p s)
--- xToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
---     OpenRoot p (xToOt (EditCommand.EditLabel ps (Str s)))
-
--- applyOt :: [Command Val] -> Command Val
--- applyOt cmds = Nl
+fromRight ~(Right x) = x
+fromLeft ~(Left x) = x
