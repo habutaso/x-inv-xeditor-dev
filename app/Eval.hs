@@ -252,8 +252,8 @@ rcWith :: Val -> Val -> Val -> Either (Err (Inv Val) Val) Val
 --       (Str ("\nl: " ++ show l ++ "\ncl: " ++ show cl ++ "\notcl: " ++ show otcl))
 --       (Str ("\nr: " ++ show r ++ "\ncr: " ++ show cr ++ "\notcr: " ++ show otcr ++ 
 --             "\not: " ++ show ot ++"\ncmd': " ++ show cmd' ++ "\nsource: " ++ show s ++
---             "\nresult: " ++ show (ppContent $ valToXML result))))
-rcWith s l r
+--             "\nresult: " ++ show result)))
+rcWith s l (r :@ _)
     | cl == [] && cr == [] = return l
     | cl == []             = return r
     |             cr == [] = return l

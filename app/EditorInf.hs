@@ -76,7 +76,7 @@ editorMPut xstmts = do
     let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
     let ((src,f,tar),_) = head stmts
     src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
-    throwErr (Modified (show src'))
+    -- throwErr (Modified (show src'))
     let (xsrc', xtar') = (valToXML src', valToXML tar)
     return (xsrc', f, xtar')
 

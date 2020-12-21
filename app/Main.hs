@@ -57,12 +57,10 @@ xmlStateToStr (s,f,v) =
 
 clnt1 = extract $ editorGetXML (xsrc, transform, xtar)
 clnt2 = extract $ editorGetXML (xsrc, transform, xtar) 
-cmd1, cmd2, cmd3, cmd4 :: Command Val
+cmd1, cmd2 :: Command Val
 cmd1 = (Insert [0,1] (read "{'x', 'y':[]}"))
-cmd2 = (Insert [0,1] (read "{'xx', 'yy':[]}"))
-cmd3 = (Delete [0,2] (read "'dummy'"))
-cmd4 = (EditCommand.EditLabel [0,0,0] (read "'abc'"))
-upd = [(clnt1, cmd1), (clnt2, cmd4)]
+cmd2 = (Insert [0,2] (read "{'xx', 'yy':[]}"))
+upd = [(clnt1, cmd1), (clnt2, cmd2)]
 updated = extract $ editorMPut upd
 
 mputtest = do
