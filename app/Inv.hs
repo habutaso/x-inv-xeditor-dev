@@ -77,7 +77,7 @@ showsX _ Node = ("node"++)
 showsX _ Inl = ("inl"++)
 showsX _ Inr = ("inr"++)
 showsX _ (Val v) = shows v
-showsX _ ReslConf = ("confresol"++)
+showsX _ ResC = ("resC"++)
 
 -- showsX _ Del = ("del"++)
 -- showsX _ Snd = ("snd"++)

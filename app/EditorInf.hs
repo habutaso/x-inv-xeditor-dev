@@ -201,6 +201,3 @@ lsTree s = Dup (DStr s) <.> Swap <.> Inv.Node
 
 extract (Right a) = a
 extract (Left err) = error (show err)
-
-fromRight ~(Right x) = x
-fromLeft ~(Left x) = x

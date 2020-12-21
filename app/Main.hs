@@ -1,11 +1,6 @@
 -- module Main where
 
 import Data.Char
-<<<<<<< HEAD
-=======
-import Data.List
-import Data.Tuple
->>>>>>> fix
 import Text.XML.Light.Types
 import Text.XML.Light.Output
 
@@ -14,7 +9,6 @@ import Inv
 import Ot
 import EditCommand
 import ValToOt
->>>>>>> fix
 import Marshall
 import EditorInf
 

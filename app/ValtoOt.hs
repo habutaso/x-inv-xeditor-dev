@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-module ValtoOt (otToVal, valToOt, cmdToOt, otToCmd) where
-=======
 module ValToOt (otToVal, valToOt, cmdToOt, otToCmd) where
->>>>>>> fix
 
 import Data.Char
 import Text.XML.Light.Types
@@ -61,21 +57,6 @@ cmdToOt (EditCommand.EditLabel (p:ps) (Str s)) =
 
 
 -- for test 
-<<<<<<< HEAD
-src :: Val
-src = read "{'Staff', {'Member', \
-\{'name', 'Takeichi':[]}:\
-\{'email', 'takeichi@ipl':[]}:\
-\{'phone', '03-12345678':[]}:[]}:[]}"
-
-testsrc :: Val
-testsrc = read "{'r', {'a', 'd':'e':[]}:\
-\^({'b', 'f':[]}:\
-\{'c', 'g':[]}:[])}"
-
-cmd1 :: Command Val
-cmd1 = Insert [0,1] (read "{'a', {'b', []}:[]}")
-=======
 -- src :: Val
 -- src = read "{'Staff', {'Member', \
 -- \{'name', 'Takeichi':[]}:\
@@ -89,4 +70,3 @@ cmd1 = Insert [0,1] (read "{'a', {'b', []}:[]}")
 --
 -- cmd1 :: Command Val
 -- cmd1 = Insert [0,1] (read "{'a', {'b', []}:[]}")
->>>>>>> fix
