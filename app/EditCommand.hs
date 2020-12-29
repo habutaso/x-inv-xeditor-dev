@@ -7,6 +7,7 @@ import Val
 data Command a = Insert Path a
                | Delete Path a
                | EditLabel Path a
+               | Stay
   deriving (Eq, Show, Read)
 
 type Path = [Int]
@@ -18,6 +19,7 @@ applyCmd :: Command Val -> Val -> Val
 applyCmd (Insert p v) = insert v p
 applyCmd (Delete p v) = delete v p 
 applyCmd (EditLabel p v) = editLabel v p
+applyCmd Stay = (\t -> t)
 
 insert :: Val -> Path -> Val -> Val
 insert v is (x :& y) = unDummyTr (insert v is (mkDummyTr x y))
