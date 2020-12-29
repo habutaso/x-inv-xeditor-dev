@@ -112,7 +112,7 @@ diff (Mark v) = [EditCommand.EditLabel [] v]
 diff _ = []
 
 diffL n Nl = []
-diffL n (Del a :@ x) = Delete [n] a : diffL n x
+diffL n (Del a :@ x) = Delete [n] a : diffL (n+1) x
 diffL n (Ins a :@ x) = Insert [n] a : diffL (n+1) x
 diffL n (a :@ x) = map (deepen n) (diff a) ++ diffL (n+1) x
 
