@@ -3,6 +3,7 @@ module Eval (eval, invert, get, put, M) where
 
 import Data.List
 import qualified Data.Tree
+import qualified Data.TreeDiff.List as DL
 import Control.Monad.Error
 
 import Val
@@ -260,7 +261,9 @@ rcWith s l (r :@ _)
     | cl == []             = return r
     |             cr == [] = return l
     | otherwise = return result
-    where cl = diff l; cr = diff r
+    where cl = [x | DL.Ins x <- DL.diffBy (==) (diff s) (diff l)]
+          cr = [x | DL.Ins x <- DL.diffBy (==) (diff s) (diff r)]
+          -- cl = diff l; cr = diff r
           otcl = map cmdToOt cl; otcr = map cmdToOt cr
           ot = tree_it (head otcl) (head otcr) True
           cmd' = if ot == [] then cr else cr ++ otToCmd (head ot) []
