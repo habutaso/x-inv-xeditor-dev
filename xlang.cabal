@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9a73a010d6aece8947cd56e2b53f7fac285ea49f87fb76852a0595370890cd37
+-- hash: b0b06e513dd4a8f7c8bbafb0aca98afd8911b366e25ed173ebacfd010fbf341b
 
 name:           xlang
-version:        0.1.0.0
+version:        0.2.0.0
 description:    Inv/X/XEditor with conflict resolution for PUT
 homepage:       https://github.com/githubuser/xlang#readme
 bug-reports:    https://github.com/githubuser/xlang/issues
@@ -35,20 +35,17 @@ library
   build-depends:
       base >=4.7 && <5
     , containers ==0.6.4.1
-    , lucid ==2.9.12
     , mtl ==2.2.2
     , parsec ==3.1.14.0
     , polyparse >=1.10
-    , scotty
     , text ==1.2.4.0
-    , wai-middleware-static
+    , tree-diff ==0.1
     , xml ==1.3.14
   default-language: Haskell2010
 
 executable xlang-exe
   main-is: Main.hs
   other-modules:
-      CommandToOt
       EditCommand
       EditorInf
       Error
@@ -61,7 +58,7 @@ executable xlang-exe
       Marshall
       Ot
       Val
-      ValtoOt
+      ValToOt
       View
       X
       Paths_xlang
@@ -71,13 +68,11 @@ executable xlang-exe
   build-depends:
       base >=4.7 && <5
     , containers ==0.6.4.1
-    , lucid ==2.9.12
     , mtl ==2.2.2
     , parsec ==3.1.14.0
     , polyparse >=1.10
-    , scotty
     , text ==1.2.4.0
-    , wai-middleware-static
+    , tree-diff ==0.1
     , xlang
     , xml ==1.3.14
   default-language: Haskell2010

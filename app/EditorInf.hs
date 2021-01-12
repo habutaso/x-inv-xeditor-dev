@@ -1,8 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 module EditorInf (State, XMLState, 
                   extract, editorGetXML,
-                  editorPutGet, editorPutGetXML, editorDup, editorTransUpdate,
-                  editorMPut, transform) where
+                  editorPutGet, editorPutGetXML,
+                  editorDup, editorTransUpdate,
+                  editorMPut, editorMPutXML, transform) where
 
 import Val
 import Inv
@@ -71,15 +72,30 @@ includeDupNode :: [Val] -> Val
 includeDupNode (v:[]) = v :@ Nl
 includeDupNode (v:vs) = fromRight $ eval xprelude mkRoot (v :@ includeDupNode vs)
 
--- editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
-editorMPut xstmts = do
-    let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
+editorMPut :: [(State, Command Val)] -> Either (Err (Inv Val) Val) Val
+editorMPut stmts = do
     let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
-    let ((src,f,tar),_) = head stmts
+    let ((src,_,_), _) = head stmts
     src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
-    -- throwErr (Modified (show src'))
-    let (xsrc', xtar') = (valToXML src', valToXML tar)
-    return (xsrc', f, xtar')
+    return src'
+
+editorMPutXML :: [(XMLState, Command Val)]
+                 -> Either (Err (Inv Val) Val) [XMLState]
+editorMPutXML xstmts = do
+    let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
+    src' <- editorMPut stmts
+    let xstmts' = map (\((s,f,v), cmd) -> (valToXML src', f, valToXML v)) stmts
+    return xstmts'
+
+-- editorMPut :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) XMLState
+-- editorMPut xstmts = do
+--     let stmts = map (\((s,f,v), cmd) -> ((xmlToVal s, f, xmlToVal v), cmd)) xstmts
+--     let tar' = map (\((s,f,v), cmd) -> applyCmd cmd v) stmts
+--     let ((src,f,tar),_) = head stmts
+--     src' <- eval xprelude inv_dupx (src :& includeDupNode tar')
+--     -- throwErr (Modified (show src'))
+--     let (xsrc', xtar') = (valToXML src', valToXML tar)
+--     return (xsrc', f, xtar')
 
 
 src' = extract (editorPut (src,transform,tar) (Insert [0,1] (read "'iiii'")))
