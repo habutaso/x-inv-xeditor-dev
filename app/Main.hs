@@ -1,6 +1,7 @@
 -- module Main where
 
 import Data.Char
+import System.Exit
 import Text.XML.Light.Types
 import Text.XML.Light.Output
 
@@ -77,3 +78,14 @@ getputget = do
     let v2' = extract $ editorGetXML $ last s'
     putStrLn $ "v1':\n" ++ xmlStateToStr v1' ++ "\n"
     putStrLn $ "v2':\n" ++ xmlStateToStr v2' ++ "\n"
+
+main = do
+    putStrLn "1: mputtest, 2: putgetput, 3: getputget, 9: exit\nPlease enter the digit>"
+    input <- getLine
+    case input of
+        "1" -> mputtest
+        "2" -> putgetput
+        "3" -> getputget
+        "9" -> exitSuccess
+        _ -> "error: wrong digit"
+    main
