@@ -45,7 +45,7 @@ data Command a =
 
 このプログラムでは，`a`には`Val`が対応することを想定しています． 
 `Path`は非負整数\[i1,i2,...in\]のリストであり，ルートのi1番目の子に入り，さらにi2番目の子に入る
-といった動作をn階層目続けた先にある部分木を指します．  
+といった動作をn階層分続けた先にある部分木を指します．  
 `Command`のそれぞれの動作は次のようになります．
 
 * `Insert Path a` : `Path`の位置に`a`を挿入する
@@ -94,7 +94,7 @@ s' = extract $ editorMPutXML [(v1, cmd1), (v2, cmd2)]
 
 * `mputtest` : get -> mput -> get -> mput の順で実行する．get -> mputの時に必ず編集操作をはさむ
 * `putgetput` : mput -> get -> mputがPUTGETPUTを満たしているかを確認する
-* `getputget` : get -> mput -> getがGETPUTETを満たしているかを確認する．
+* `getputget` : get -> mput -> getがGETPUTGETを満たしているかを確認する．
 
 ## 関数
 ### XEditor(app/EditorInf.hs)
