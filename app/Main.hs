@@ -87,5 +87,5 @@ main = do
         "2" -> putgetput
         "3" -> getputget
         "9" -> exitSuccess
-        _ -> "error: wrong digit"
+        _ -> error "wrong digit"
     main
