@@ -2,6 +2,12 @@
 X/Inv/XEditorに操作変換の競合解決アルゴリズムを適用して  
 2つのビュー間の更新内容の競合を解決しつつソースを更新できるmputを提案します．
 
+X言語の論文はここから  
+[A programmable editor for developing structured documents based on bidirectional transformations](https://doi.org/10.1007/s10990-008-9025-5)
+
+もとのX/Inv/XEditorのソースコードは以下のサイトから  
+[http://research.nii.ac.jp/~hu/project/bix.html]
+
 ## 開発環境
 * Debian 10 (buster) on WSL (仮想でないWindows 10でも動作確認済み)
 * haskell stack 2.3.3
