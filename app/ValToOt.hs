@@ -51,7 +51,8 @@ cmdToOt (Insert (p:ps) (Str s)) = Atomic (TreeInsert p [Ot.Node s []])
 -- というルールが一応あるが．それを無視してもよいのか．
 cmdToOt (Delete (p:[]) (Nod (Str s) ts)) = Atomic (TreeRemove p [Ot.Node s (atValToTs ts)])
 cmdToOt (Delete (p:ps) (Nod (Str s) ts)) = OpenRoot p $ cmdToOt (Delete ps (Nod (Str s) ts))
-cmdToOt (EditCommand.EditLabel (p:[]) (Str s)) = Atomic (Ot.EditLabel (UStr s))
+cmdToOt (EditCommand.EditLabel [] (Str s)) = Atomic (Ot.EditLabel (UStr s))
+cmdToOt (EditCommand.EditLabel (p:[]) (Str s)) = OpenRoot p (Atomic (Ot.EditLabel (UStr s)))
 cmdToOt (EditCommand.EditLabel (p:ps) (Str s)) = 
     OpenRoot p (cmdToOt (EditCommand.EditLabel ps (Str s)))
 
@@ -68,5 +69,6 @@ cmdToOt (EditCommand.EditLabel (p:ps) (Str s)) =
 -- \^({'b', 'f':[]}:\
 -- \{'c', 'g':[]}:[])}"
 --
--- cmd1 :: Command Val
+-- cmd1, cmd2 :: Command Val
 -- cmd1 = Insert [0,1] (read "{'a', {'b', []}:[]}")
+-- cmd2 = EditCommand.EditLabel [0,1] (read "'abcd'")

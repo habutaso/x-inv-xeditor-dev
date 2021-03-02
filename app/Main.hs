@@ -54,8 +54,8 @@ mputtest = do
 
     let v1' = extract $ editorGetXML $ head s'
     let v2' = extract $ editorGetXML $ last s'
-    let cmd1' = (Insert [0,1] (read "{'w', 'z':[]}"))
-    let cmd2' = (Insert [0,1] (read "{'www', 'zzz':[]}"))
+    let cmd1' = (EditCommand.EditLabel [0,1] (read "'wwww'"))
+    let cmd2' = (Delete [0,4] (read "___"))
 
     let s'' = extract $ editorMPutXML [(v1', cmd1'), (v2', cmd2')]
     putStrLn $ "updated:\n" ++ xmlStateToStr (head s'') ++ "\n"
