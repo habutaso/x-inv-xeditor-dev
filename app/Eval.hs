@@ -232,9 +232,11 @@ eval st (Inv (Define name f)) a =
 
 eval st (Inv f) a = eval st (invert f) a
 
+eval st f a = throwErr (OutDom f a) 
+
 eval st ResC (s :& (l :@ r)) = rcWith s l r
 
-eval st f a = throwErr (OutDom f a) 
+eval st (Inv ResC) a = (a :& (a :@ a))
 
 outdom st f (Del x) = liftM Del (eval st f x)
 outdom st f (Ins x) = liftM Ins (eval st f x)
