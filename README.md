@@ -1,12 +1,14 @@
 # x-inv-xeditor-dev
 X/Inv/XEditorに操作変換の競合解決アルゴリズムを適用して  
 2つのビュー間の更新内容の競合を解決しつつソースを更新できるmputを提案します．
+We propose mput, which applies a conflict resolution algorithm for operational transformations to X/Inv/XEditor.
 
 X言語の論文はここから  
 [A programmable editor for developing structured documents based on bidirectional transformations](https://doi.org/10.1007/s10990-008-9025-5)  
 Zhenjiang Hu, Shin-Cheng Mu, and Masato Takeichi
 
 もとのX/Inv/XEditorのソースコードは以下のサイトから  
+Source code for X/Inv/XEditor.  
 [http://research.nii.ac.jp/~hu/project/bix.html]
 
 操作変換の論文はここから  
@@ -27,6 +29,7 @@ Sergey Sinchuk, Pavel Chuprikov, and Konstantin Solomatov
 完了したら，
 `stack run`
 を実行してください．プログラムがコンパイルされ，そのプログラムが実行されます．
+Before running this program, please prepare stack.
 
 ## 使い方
 ### 構造化文書Valと編集操作の表現
