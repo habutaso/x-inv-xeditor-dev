@@ -5,7 +5,7 @@ We propose mput, which applies a conflict resolution algorithm for operational t
 
 X言語の論文はここから  
 [A programmable editor for developing structured documents based on bidirectional transformations](https://doi.org/10.1007/s10990-008-9025-5)  
-Zhenjiang Hu, Shin-Cheng Mu, and Masato Takeichi
+Zhenjiang Hu, Shin-Cheng Mu, and Masato Takeichi  
 High. Order Symb. Comput. 21(1-2),  89-118 (2008)
 
 もとのX/Inv/XEditorのソースコードは以下のサイトから  
@@ -14,7 +14,7 @@ Source code for X/Inv/XEditor.
 
 操作変換の論文はここから  
 [Verified Operational Transformation for Trees](https://doi.org/10.1007/978-3-319-43144-4_22)  
-Sergey Sinchuk, Pavel Chuprikov, and Konstantin Solomatov
+Sergey Sinchuk, Pavel Chuprikov, and Konstantin Solomatov  
 In: International Conference on Interactive Theorem Proving. pp. 358-373. Springer (2016)
 
 
