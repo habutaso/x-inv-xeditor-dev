@@ -20,14 +20,12 @@ Sergey Sinchuk, Pavel Chuprikov, and Konstantin Solomatov
 In: International Conference on Interactive Theorem Proving. pp. 358-373. Springer (2016)
 
 
-## 開発環境
-## Developing environment
+## 開発環境 (Developing environment)
 * Debian 10 (buster) on WSL (仮想でないWindows 10でも動作確認済み)
 * haskell stack 2.3.3
 * GHC 8.8.4 (lts-16.16)
 
-## 実行
-## How to run the program
+## 実行 (How to run the program)
 このプログラムを実行する前に，stackの環境を用意してください． 
 Before running this program, please prepare stack.  
 このgitリポジトリをダウンロードし，そのディレクトリに移動します．そして，
@@ -41,10 +39,8 @@ Then run the following command.
 を実行してください．プログラムがコンパイルされ，そのプログラムが実行されます．  
 It should compile the program and run.  
 
-## 使い方
-## Usage
-### 構造化文書Valと編集操作の表現
-### Structured document Val and representation of editing operation
+## 使い方 (Usage)
+### 構造化文書Valと編集操作の表現 (Structured document Val and representation of editing operation)
 `Val`とは簡易的な構造化文書(XML)とそれに施される編集操作をまとめて表現できる型です．
 説明用の`Val`を用意します．`Val`は`Read`のインスタンスであり
 `Val`用に用意されたシンタックスで導出できます．  
@@ -96,8 +92,7 @@ In `Main.hs`, `'___'` is used as a dummy value)
 * `EditLabel Path a` : `Path`の位置のラベルを`a`に更新する (Update the label at position `Path` to  `a`)
 * `Stay` : 何も編集しない (Do nothing)
 
-### 使用例
-### Usage example
+### 使用例 (Usage example)
 次のようなコマンドを用意します．  
 Prepare the following commands.  
 
@@ -125,24 +120,30 @@ v1 = extract $ editorGetXML (xsrc, transform, xtar)
 v2 = extract $ editorGetXML (xsrc, transform, xtar)
 ```
 
-`v1,v2`はソースの内容をそのまま抽出したビューを含む`State`となります．
+`v1,v2`はソースの内容をそのまま抽出したビューを含む`State`となります．  
+`v1,v2` are the `State`s that contain the view as verbatim extraction of the content of the source.  
 
-次に，それぞれのビューに異なる更新を加え，mputを実行します．
+次に，それぞれのビューに異なる更新を加え，mputを実行します．  
+Then, apply different updates for each view and execute mput.  
 
 ```
 s' = extract $ editorMPutXML [(v1, cmd1), (v2, cmd2)]
 ```
 
-`s'`は，`v1,v2`の更新内容が競合解決されたソースになります．
+`s'`は，`v1,v2`の更新内容が競合解決されたソースになります．  
+`s'` will be the new source with the conflict caused by the updates on `v1` and `v2` are resolved.  
 
 ### Main.hs
-このファイルで定義されている`main`はテスト用の3つの関数を選択できるようになっています．
+このファイルで定義されている`main`はテスト用の3つの関数を選択できるようになっています．  
+In the `main` function, you can choose one of the following three functions defined in this file for testing.
 
 * `mputtest` : get -> mput -> get -> mput の順で実行する．get -> mputの時に必ず編集操作をはさむ
+(execute get -> mput -> get -> mput in this order. Make sure an editing operation is inserted between get and mput)
 * `putgetput` : mput -> get -> mputがPUTGETPUTを満たしているかを確認する
+(check if the sequence of mput -> get -> mput satisfies PUTGETPUT)
 * `getputget` : get -> mput -> getがGETPUTGETを満たしているかを確認する．
-
-## 関数
+(check if the sequnence of get -> mput -> get satisfies GETPUTGET)
+## 関数 (important functions)
 ### XEditor(app/EditorInf.hs)
 
 #### editorGetXML
@@ -150,8 +151,10 @@ s' = extract $ editorMPutXML [(v1, cmd1), (v2, cmd2)]
 type XMLState = (Content, Inv Val, Content)
 editorGetXML :: XMLState -> Either (Err (Inv Val) Val) XMLState
 ```
-XMLStateは(XMLソース，ファンクション，XMLビュー)をもつタプルです．
-Contentは[xml-1.3.14](https://hackage.haskell.org/package/xml-1.3.14)を使用しています．
+XMLStateは(XMLソース，ファンクション，XMLビュー)をもつタプルです．  
+XMLState is a triple consisting of XML soure, function and XML view.  
+Contentは[xml-1.3.14](https://hackage.haskell.org/package/xml-1.3.14)を使用しています．  
+Content uses [xml-1.3.14](https://hackage.haskell.org/package/xml-1.3.14).  
 
 #### editorMPut
 ```
@@ -159,15 +162,24 @@ type State = (Val, Inv Val, Val)
 
 editorMPut :: [(State, Command Val)] -> Either (Err (Inv Val) Val) Val
 ```
-Stateは(ソース, ファンクション, ビュー)をもつタプルです．
+Stateは(ソース, ファンクション, ビュー)をもつタプルです．  
+State is a triple consisting of source, function and view.  
 editorMPutは，ビュー編集者の数を要素数とし，各々の編集者がValに対して行った編集操作`Command Val`
-を持つ，`(State, Command Val)`のリストを入力とします．
+を持つ，`(State, Command Val)`のリストを入力とします．  
+editorMPut takes as input the list of `(State, Command Val)` which contains the same number
+of elements as the number of editors of the view, where `Command Val` is the editing operations
+on Val conducted by each editor.  
 出力は，競合解決後の編集操作が適用されたソースです．
+The output is the source on which the editing operation after conflict resolution is applied.
 
 #### editorMPutXML
 ```
 editorMPutXML :: [(XMLState, Command Val)] -> Either (Err (Inv Val) Val) [XMLState]
 ```
 editorMPutXMLは，ビュー編集者の数を要素数とし，各々の編集者がXMLに対して行った編集操作`Command Val`
-を持つ，`(State, Command Val)`のリストを入力とします．
-出力は，各編集者のXMLStateを更新したものです．
+を持つ，`(State, Command Val)`のリストを入力とします．  
+editorMPutXML takes as input the list of `(State, Command Val)` which contains the
+same number of elements as the number of editors of theview, where Command Val` is 
+the editing opeeratons applied on XML by each each editor.  
+出力は，各編集者のXMLStateを更新したものです．  
+The output is the updated XMLState for each editor.
