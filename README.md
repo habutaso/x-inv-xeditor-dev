@@ -4,7 +4,7 @@ X/Inv/XEditorに操作変換の競合解決アルゴリズムを適用して
 We propose mput, which applies a conflict resolution algorithm for operational transformations to X/Inv/XEditor.
 
 X言語の論文はここから  
-The paper on X langauge we refer to is the following
+The paper on X langauge we refer to is the following  
 [A programmable editor for developing structured documents based on bidirectional transformations](https://doi.org/10.1007/s10990-008-9025-5)  
 Zhenjiang Hu, Shin-Cheng Mu, and Masato Takeichi  
 High. Order Symb. Comput. 21(1-2),  89-118 (2008)
@@ -14,7 +14,7 @@ Source code for X/Inv/XEditor.
 [http://research.nii.ac.jp/~hu/project/bix.html]
 
 操作変換の論文はここから  
-The paper on operational transformation we refer to is the following
+The paper on operational transformation we refer to is the following  
 [Verified Operational Transformation for Trees](https://doi.org/10.1007/978-3-319-43144-4_22)  
 Sergey Sinchuk, Pavel Chuprikov, and Konstantin Solomatov  
 In: International Conference on Interactive Theorem Proving. pp. 358-373. Springer (2016)
@@ -28,18 +28,18 @@ In: International Conference on Interactive Theorem Proving. pp. 358-373. Spring
 
 ## 実行
 ## How to run the program
-このプログラムを実行する前に，stackの環境を用意してください．
-Before running this program, please prepare stack.
+このプログラムを実行する前に，stackの環境を用意してください． 
+Before running this program, please prepare stack.  
 このgitリポジトリをダウンロードし，そのディレクトリに移動します．そして，
-Download this git repository, and go to the directory. The following command line
+Download this git repository, and go to the directory. The following command line  
 `stack build`
 をすると，必要なパッケージを取得します．GHCのインストールもここで行われるはずです．
 完了したら，
-will retrieve the necessary packages. GHC should be installed in this step.
-Then run the following command.
+will retrieve the necessary packages. GHC should be installed in this step.  
+Then run the following command.  
 `stack run`
 を実行してください．プログラムがコンパイルされ，そのプログラムが実行されます．  
-It should compile the program and run.
+It should compile the program and run.  
 
 ## 使い方
 ## Usage
@@ -47,7 +47,7 @@ It should compile the program and run.
 ### Structured document Val and representation of editing operation
 `Val`とは簡易的な構造化文書(XML)とそれに施される編集操作をまとめて表現できる型です．
 説明用の`Val`を用意します．`Val`は`Read`のインスタンスであり
-`Val`用に用意されたシンタックスで導出できます．
+`Val`用に用意されたシンタックスで導出できます．  
 `Val`is a type that can collectively represent simple structured document
 (XML) and the editing operations applied to it．
 Here we prepare `Val` for explanatory purpose. `Val` is an instance of `Read`,
@@ -63,7 +63,7 @@ src = read "{'a', {'b', \
 ```
 
 ある一つの親ノードに対して，子ノードはリスト形式で表現されます．  
-編集操作は次のように表現されます．
+編集操作は次のように表現されます．  
 For a given parent node, its children nodes are represented in list format.
 Editing operations are represented as follows.
 
@@ -83,9 +83,9 @@ This program assumes that `a` corresponds to `Val`.
 といった動作をn階層分続けた先にある部分木を指します．  
 `Path` is a list of non-negative integers \[i1,i2,...in\]，representing the navigation
 to proceed to the i1-th child of the root, then to its i2-th child, and so on,
-to represent the subtree reached after repeating this step n times.
+to represent the subtree reached after repeating this step n times.  
 `Command`のそれぞれの動作は次のようになります．
-The following shows operations in the `Command`.
+The following shows operations in the `Command`.  
 
 * `Insert Path a` : `Path`の位置に`a`を挿入する  (Insert `a` at the position pointed by `Path`)
 * `Delete Path a` : `Path`の位置の部分木を削除する．`a`は操作変換の実装に合わせるために存在しており，  
@@ -98,8 +98,8 @@ In `Main.hs`, `'___'` is used as a dummy value)
 
 ### 使用例
 ### Usage example
-次のようなコマンドを用意します．
-Prepare the following commands.
+次のようなコマンドを用意します．  
+Prepare the following commands.  
 
 ```
 cmd1, cmd2, cmd3 :: Command Val
@@ -108,8 +108,8 @@ cmd2 = Delete [0,2] (read "'___'")
 cmd3 = EditLabel [0,3] (read "'abc'")
 ```
 
-ビューを生成します．
-Create the views as follows.
+ビューを生成します． 
+Create the views as follows.  
 
 ```
 tar :: Val
