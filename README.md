@@ -21,18 +21,18 @@ In: International Conference on Interactive Theorem Proving. pp. 358-373. Spring
 
 
 ## 開発環境 (Developing environment)
-* Debian 10 (buster) on WSL (仮想でないWindows 10でも動作確認済み)
+* Debian 10 (buster) on WSL (仮想でないWindows 10でも動作確認済み)(Also confirmed to work in non-virtual Windows 10 environment)
 * haskell stack 2.3.3
 * GHC 8.8.4 (lts-16.16)
 
 ## 実行 (How to run the program)
-このプログラムを実行する前に，stackの環境を用意してください． 
+このプログラムを実行する前に，stackの環境を用意してください．  
 Before running this program, please prepare stack.  
-このgitリポジトリをダウンロードし，そのディレクトリに移動します．そして，
+このgitリポジトリをダウンロードし，そのディレクトリに移動します．そして， 
 Download this git repository, and go to the directory. The following command line  
-`stack build`
+`stack build`  
 をすると，必要なパッケージを取得します．GHCのインストールもここで行われるはずです．
-完了したら，
+完了したら，  
 will retrieve the necessary packages. GHC should be installed in this step.  
 Then run the following command.  
 `stack run`
@@ -60,7 +60,7 @@ src = read "{'a', {'b', \
 
 ある一つの親ノードに対して，子ノードはリスト形式で表現されます．  
 編集操作は次のように表現されます．  
-For a given parent node, its children nodes are represented in list format.
+For a given parent node, its children nodes are represented in list format.  
 Editing operations are represented as follows.
 
 ```
@@ -73,14 +73,14 @@ data Command a =
 	| Stay
 ```
 
-このプログラムでは，`a`には`Val`が対応することを想定しています． 
-This program assumes that `a` corresponds to `Val`.
+このプログラムでは，`a`には`Val`が対応することを想定しています．  
+This program assumes that `a` corresponds to `Val`.  
 `Path`は非負整数\[i1,i2,...in\]のリストであり，ルートのi1番目の子に入り，さらにi2番目の子に入る
 といった動作をn階層分続けた先にある部分木を指します．  
 `Path` is a list of non-negative integers \[i1,i2,...in\]，representing the navigation
 to proceed to the i1-th child of the root, then to its i2-th child, and so on,
 to represent the subtree reached after repeating this step n times.  
-`Command`のそれぞれの動作は次のようになります．
+`Command`のそれぞれの動作は次のようになります．  
 The following shows operations in the `Command`.  
 
 * `Insert Path a` : `Path`の位置に`a`を挿入する  (Insert `a` at the position pointed by `Path`)
@@ -103,7 +103,7 @@ cmd2 = Delete [0,2] (read "'___'")
 cmd3 = EditLabel [0,3] (read "'abc'")
 ```
 
-ビューを生成します． 
+ビューを生成します．  
 Create the views as follows.  
 
 ```
@@ -169,7 +169,7 @@ editorMPutは，ビュー編集者の数を要素数とし，各々の編集者�
 editorMPut takes as input the list of `(State, Command Val)` which contains the same number
 of elements as the number of editors of the view, where `Command Val` is the editing operations
 on Val conducted by each editor.  
-出力は，競合解決後の編集操作が適用されたソースです．
+出力は，競合解決後の編集操作が適用されたソースです．  
 The output is the source on which the editing operation after conflict resolution is applied.
 
 #### editorMPutXML
